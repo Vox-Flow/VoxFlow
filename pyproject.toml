@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "voxflow"
+version = "0.1.0"
+description = "Yerel yapay zekâ destekli Türkçe sesli bilgisayar asistanı (ASR -> NLU -> güvenli eylem)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+  { name = "Helin Mengüloğul" },
+  { name = "İremsu Pala" },
+  { name = "Melike Nesrin Zaman" },
+]
+dependencies = [
+  "pydantic>=2.5",
+]
+
+[project.optional-dependencies]
+audio = ["sounddevice>=0.4.6", "numpy>=1.26", "soundfile>=0.12"]
+asr = ["faster-whisper>=1.0"]
+ollama = ["httpx>=0.27"]
+tts = ["pyttsx3>=2.90"]
+train = ["torch", "transformers", "datasets", "peft", "jiwer", "evaluate"]
+dev = ["pytest>=8", "ruff>=0.5", "pre-commit>=3.7"]
+typecheck = ["mypy>=1.10"]
+
+[project.scripts]
+voxflow = "voice_assistant.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/voice_assistant"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = ["S101"]  # testlerde assert serbest
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+mypy_path = "src"
+ignore_missing_imports = true

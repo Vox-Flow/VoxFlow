@@ -1,0 +1,34 @@
+{
+  "apps": {
+    "firefox": {
+      "aliases": ["firefox", "tarayıcı", "internet tarayıcısı"],
+      "linux": ["firefox"],
+      "windows": ["firefox.exe"],
+      "macos": ["open", "-a", "Firefox"]
+    },
+    "hesap_makinesi": {
+      "aliases": ["hesap makinesi", "hesap makinesini", "calculator"],
+      "linux": ["gnome-calculator"],
+      "windows": ["calc.exe"],
+      "macos": ["open", "-a", "Calculator"]
+    },
+    "metin_editoru": {
+      "aliases": ["metin editörü", "not defteri", "editör", "gedit"],
+      "linux": ["gedit"],
+      "windows": ["notepad.exe"],
+      "macos": ["open", "-a", "TextEdit"]
+    },
+    "terminal": {
+      "aliases": ["terminal", "uçbirim", "konsol"],
+      "linux": ["gnome-terminal"],
+      "windows": ["cmd.exe"],
+      "macos": ["open", "-a", "Terminal"]
+    },
+    "dosya_yoneticisi": {
+      "aliases": ["dosya yöneticisi", "dosyalar", "klasörler"],
+      "linux": ["nautilus"],
+      "windows": ["explorer.exe"],
+      "macos": ["open", "-a", "Finder"]
+    }
+  }
+}

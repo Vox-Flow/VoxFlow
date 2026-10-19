@@ -1,0 +1,20 @@
+name: Hata
+description: Beklenmeyen davranış
+labels: ["bug"]
+body:
+  - type: input
+    id: env
+    attributes: { label: Ortam, placeholder: "Windows 11, Python 3.12, voxflow 0.1.0" }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: Adımlar, placeholder: "voxflow --text \"...\"" }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: Beklenen }
+    validations: { required: true }
+  - type: textarea
+    id: actual
+    attributes: { label: Gerçekleşen (çıktı / hata kodu) }
+    validations: { required: true }

@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Kişisel veri — ASLA commit edilmez
+data/
+*.json.bak
+config/app.json
+config/apps.json
+config/sites.json
+datasets/raw/
+datasets/audio/
+datasets/manifests/*_real*.jsonl
+experiments/**/runs/
+experiments/**/checkpoints/
+*.wav
+*.flac
+*.mp3
+*.ogg
+*.m4a
+
+# Modeller
+models/
+*.pt
+*.bin
+*.safetensors
+*.gguf
+
+# Editör/OS
+.vscode/
+.idea/
+.DS_Store

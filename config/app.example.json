@@ -1,0 +1,24 @@
+{
+  "language": "tr",
+  "data_dir": null,
+  "asr": {
+    "provider": "mock",
+    "model_size": "base",
+    "device": "auto",
+    "compute_type": "int8"
+  },
+  "nlu": {
+    "provider": "rule_based",
+    "ollama_model": "qwen2.5:latest",
+    "ollama_url": "http://127.0.0.1:11434",
+    "timeout_s": 30
+  },
+  "tts": {
+    "provider": "console"
+  },
+  "audio": {
+    "sample_rate": 16000,
+    "channels": 1,
+    "max_seconds": 60
+  }
+}

@@ -1,0 +1,36 @@
+name: Görev (iş paketi)
+description: Kanban kartı olacak bir iş
+labels: ["task"]
+body:
+  - type: input
+    id: owner
+    attributes: { label: Sorumlu / destekçi, placeholder: "İremsu / Melike" }
+    validations: { required: true }
+  - type: dropdown
+    id: faz
+    attributes:
+      label: Faz
+      options: ["faz-2 ses/ASR", "faz-3 NLU", "faz-4 eğitim (hoca kararı)", "faz-5 test/teslim", "altyapı"]
+    validations: { required: true }
+  - type: textarea
+    id: goal
+    attributes: { label: Amaç, description: "Ne yapılacak, neden?" }
+    validations: { required: true }
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Kabul kriterleri
+      placeholder: |
+        - [ ] ...
+        - [ ] test eklendi
+    validations: { required: true }
+  - type: input
+    id: deps
+    attributes: { label: Bağımlı olduğu issue'lar, placeholder: "#3, #7" }
+  - type: checkboxes
+    id: gate
+    attributes:
+      label: Kapılar
+      options:
+        - label: Hoca kararı gerektiriyor (model indirme / eğitim)
+        - label: Birden fazla OS'te manuel test gerekiyor

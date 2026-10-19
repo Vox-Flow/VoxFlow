@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - name: Bağımlılıklar
+        run: uv sync --extra dev
+      - name: Ruff format kontrolü
+        run: uv run ruff format --check src tests experiments
+      - name: Ruff lint
+        run: uv run ruff check src tests experiments
+      - name: Testler
+        run: uv run pytest -q
+      - name: CLI duman testi
+        run: uv run voxflow --data-dir ./.ci-data --text "görev ekle" --text "CI görevi" --text "görevleri listele"

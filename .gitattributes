@@ -1,0 +1,12 @@
+* text=auto eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.wav binary
+*.flac binary
+*.mp3 binary
+*.pt binary
+*.bin binary
+*.safetensors binary
+*.gguf binary

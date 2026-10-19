@@ -1,0 +1,9 @@
+{
+  "sites": {
+    "youtube": { "url": "https://www.youtube.com", "aliases": ["youtube", "yutup", "yutub"] },
+    "google": { "url": "https://www.google.com", "aliases": ["google", "gugıl"] },
+    "github": { "url": "https://github.com", "aliases": ["github", "githab"] },
+    "wikipedia": { "url": "https://tr.wikipedia.org", "aliases": ["wikipedia", "vikipedi"] },
+    "ekampus": { "url": "https://example.edu", "aliases": ["e kampüs", "ekampüs", "okul sitesi"] }
+  }
+}
