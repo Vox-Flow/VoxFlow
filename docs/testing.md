@@ -37,3 +37,6 @@ uv venv .venv && uv pip install -e '.[dev]'
 | `listen` mikrofon kaydı | – | – | – |
 | faster-whisper transkripsiyon | – | – | – |
 "–" = henüz denenmedi. CI (GitHub Actions) üç OS'te yalnızca pytest/ruff/CLI duman testini koşar.
+
+### CI'nın yakaladığı platform hatası (2026-10-19)
+Windows runner'da `UnicodeEncodeError: 'charmap' codec can't encode character 'ğ'`: Windows konsolu cp1252 kullanıyor. Çözüm: `cli.main` başında stdout/stderr UTF-8'e `reconfigure` edilir; CI'da `PYTHONUTF8=1`. Linux/macOS etkilenmedi.
