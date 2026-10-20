@@ -7,8 +7,9 @@ Aşamalar:
               (HF cache).
 
 Kullanım:
-  uv run python experiments/asr/train_whisper.py experiments/asr/configs/whisper_base_ft.yaml --dry-run
-  uv run python experiments/asr/train_whisper.py experiments/asr/configs/whisper_base_ft.yaml --output runs/v0
+  CFG=experiments/asr/configs/whisper_base_ft.yaml
+  uv run python experiments/asr/train_whisper.py $CFG --dry-run
+  uv run python experiments/asr/train_whisper.py $CFG --output runs/v0
 
 Her çalışma sonunda experiments/reports/TEMPLATE.md doldurulur (config hash, seed, metrik).
 """
@@ -98,9 +99,8 @@ def train(cfg: dict, cfg_path: Path, output: Path) -> int:  # type: ignore[type-
         )
     except OSError:
         raise SystemExit(
-            f"{cfg['base_model']} yerelde yok. Ekip onayıyla bir kez indirin:\n"
-            f'  uv run python -c "from transformers import WhisperForConditionalGeneration as M, WhisperProcessor as P; '
-            f"M.from_pretrained('{cfg['base_model']}'); P.from_pretrained('{cfg['base_model']}')\""
+            f"{cfg['base_model']} yerelde yok (ağdan indirme yapılmadı). "
+            "Ekip onayıyla bir kez indirmek için bkz. docs/setup.md 'Whisper eğitim ağırlıkları'."
         ) from None
     model.generation_config.language = "turkish"
     model.generation_config.task = "transcribe"

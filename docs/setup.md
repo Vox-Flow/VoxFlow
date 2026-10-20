@@ -33,3 +33,12 @@ uv pip install -e '.[audio,asr]'
 
 ## NLU (Faz 3, isteğe bağlı)
 Ollama kurulu ve `qwen2.5` yerelde mevcutsa `"nlu": {"provider": "ollama"}`. Sunucu kapalıysa kurallı yorumlayıcıya düşer (uyarı verir).
+
+## Whisper eğitim ağırlıkları (Faz 4, ekip onayıyla, tek sefer, internetli)
+`openai/whisper-base` HF ağırlıkları ≈ 290 MB:
+```bash
+uv sync --extra dev --extra train
+uv run python -c "from transformers import WhisperForConditionalGeneration as M, WhisperProcessor as P; \
+  M.from_pretrained('openai/whisper-base'); P.from_pretrained('openai/whisper-base')"
+```
+Sonrasında `train_whisper.py` `local_files_only=True` ile çalışır; çevrimdışı yeniden indirmeye kalkmaz.
