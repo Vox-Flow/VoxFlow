@@ -1,0 +1,43 @@
+# Whisper base fine-tune konfigürasyonu (ADR-008). Değerler başlangıç noktasıdır; her çalışma
+# experiments/reports/ altında bu dosyanın commit hash'i ile kaydedilir.
+run_name: whisper-base-tr-commands-v0
+base_model: openai/whisper-base        # HF kimliği; indirme ekip onayıyla (~290 MB)
+language: tr
+task: transcribe                       # çeviri yok
+
+data:
+  train_manifest: datasets/manifests/asr_train.jsonl   # git dışı (gerçek veri)
+  val_manifest:   datasets/manifests/asr_val.jsonl
+  test_manifest:  datasets/manifests/asr_test.jsonl    # DONDURULMUŞ; konuşmacı-ayrık
+  sample_rate: 16000
+  max_duration_s: 15
+  min_duration_s: 0.5
+  text_normalization: lowercase_tr     # services/text_utils.normalize ile aynı
+
+training:
+  seed: 42
+  epochs: 5
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 2       # etkin batch 16
+  learning_rate: 1.0e-5
+  warmup_steps: 50
+  weight_decay: 0.0
+  fp16: true
+  gradient_checkpointing: true         # 4 GB VRAM için zorunlu
+  eval_strategy: epoch
+  save_strategy: epoch
+  metric_for_best_model: wer
+  greater_is_better: false
+  freeze_encoder: false                # sığmazsa true dene (sadece decoder öğrenir)
+
+lora:                                  # yalnızca base_model small/medium ise
+  enabled: false
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: [q_proj, v_proj]
+
+export:
+  ctranslate2: true                    # ct2-transformers-converter --model <out> --quantization int8
+  quantization: int8
+  output_dir: models/whisper-base-tr-commands-ct2   # git dışı

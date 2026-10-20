@@ -33,6 +33,21 @@ Her karar: bağlam, alternatifler, karar, etkiler, geri dönüş planı. Tarihle
 ## ADR-006 — Allowlist konfigürasyonu: `config/apps.json`, `config/sites.json` (2026-10-19)
 - **Karar:** Uygulama komutu platform başına sabit argv listesi; `shell=False`. Site URL'leri yalnızca http/https; kullanıcı metni asla URL'ye girmez. Gerçek dosyalar `.gitignore`'da; `*.example.json` sürümlenir.
 
-## ADR-007 — Fine-tuning hedefi AÇIK (hoca yanıtı bekleniyor)
-- **Durum:** ASR (Whisper) mi NLU (Qwen LoRA) mi kararlaştırılmadı. Her iki izlek için yalnızca adaptör + veri şeması + değerlendirme iskeleti hazırlanır. Büyük model indirme/eğitim yok.
-- **Donanım notu (ölçüldü):** RTX 3050 Ti Laptop 4 GB VRAM, 15 GB RAM. Bu, Qwen 7B tam fine-tune için yetersiz; QLoRA 0.5B–1.5B veya Whisper tiny/base fine-tune gerçekçi. Kesin seçim hoca yanıtı + bellek testi + ekip onayı ile.
+## ADR-007 — Fine-tuning hedefi (KAPATILDI, bkz. ADR-008) (2026-10-19 → 2026-10-20)
+- **Durum:** 2026-10-20'de hoca yanıtı geldi: "Hazır bir modeli kendi verilerinizle fine-tune etmeniz yeterli; planladığınız şekilde ilerleyebilirsiniz." Yöntem seçimi ekibe bırakıldı. Karar ADR-008'de.
+- **Donanım notu (ölçüldü):** RTX 3050 Ti Laptop 4 GB VRAM, 15 GB RAM.
+
+## ADR-008 — Ana fine-tuning izleği: Whisper (ASR) (2026-10-20)
+- **Bağlam:** Hoca "hazır model + kendi veri ile fine-tune" şartı koydu, hangi katman olduğunu ekibe bıraktı. Ders başlığı ASR. 4 GB VRAM.
+- **Alternatifler:** (a) Qwen LoRA (komut→JSON): veri üretimi kolay, eğitim hızlı; ama ders başlığıyla bağı zayıf ve kurallı NLU zaten çalışıyor, "neden eğittiniz" sorusuna zayıf cevap. (b) İki izlek paralel: 3 kişilik ekipte dağınıklık riski. (c) Whisper.
+- **Karar:** Tek ana izlek **Whisper fine-tune**. Taban `openai/whisper-base` (74M); tam fine-tune fp16 + gradient checkpointing 4 GB'a sığmalı; `small` yalnızca LoRA ile düşünülür. Eğitim HF transformers; çıkarım için CTranslate2'ye çevrilip mevcut `FasterWhisperRecognizer`'a takılır.
+- **Veri:** ≥8–10 konuşmacı × ~100 komut × ~3 sn ≈ 1 saat hedef (ölçülmüş değil, hedef). Konuşmacı-ayrık split. İsteğe bağlı destek: Common Voice TR (lisans/erişim koşulları kullanılmadan önce doğrulanacak). Açık izin formu zorunlu (`docs/consent_form_tr.md`).
+- **Metrikler:** WER/CER (konuşmacı-ayrık test), gecikme, bellek; ayrıca uçtan uca ASR→kurallı NLU işlem doğruluğu. Baseline = aynı testte fine-tune edilmemiş base.
+- **Risk (açıkça):** Whisper Türkçeyi zaten iyi bilir; küçük veriyle genel WER'de büyük düşüş beklenmez. Kazanç alan sözcükleri (uygulama/site adları, komut kalıpları), kendi mikrofon/konuşmacılar ve kısa cümle halüsinasyonlarında aranır. Fark küçük çıkarsa da rapora yazılır.
+- **Geri dönüş:** Eğitim 4 GB'a sığmazsa `tiny` ya da LoRA; o da olmazsa Colab/Kaggle T4 — yalnızca izin formunda bulut işleme maddesi varsa.
+
+## ADR-009 — NLU: Qwen eğitilmez, hibrit kullanılır (2026-10-20)
+- **Karar:** Qwen2.5 (Ollama, hazır) **fine-tune edilmez**; yalnızca yapılandırılmış JSON üreten isteğe bağlı IntentInterpreter adaptörüdür. Üç NLU modu: `rule_based` (varsayılan, bağımlılıksız), `ollama`, `hybrid` (önerilen: önce kural, `unknown` dönerse Qwen). Her çıktı `CommandValidator`'dan geçer.
+- **Gerekçe:** Kural anında ve belirleyici; LLM yalnızca serbest söyleyişte değer katar; Ollama yoksa sistem çalışmaya devam eder; injection yüzeyi küçülür.
+- **Model boyutu:** 1.5B/3B/7B aynı test kümesinde karşılaştırılarak seçilir (issue #13); ölçmeden karar yok.
+- **Qwen fine-tune:** yapılmaz; "ileriki çalışma" olarak rapora yazılır.
