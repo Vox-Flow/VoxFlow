@@ -34,7 +34,7 @@ feat/asr-faster-whisper ──PR──▶ develop ──PR (faz teslimi, vX.Y.0 
 - `main`: her zaman hocaya gösterilebilir. Yalnızca `develop`'tan PR alır.
 - `develop`: entegrasyon dalı. Yalnızca PR alır; doğrudan push yok.
 - İş dalları: `feat/…`, `fix/…`, `docs/…`, `test/…`, `exp/…` (deneyler). Kısa, küçük harf, tire ile.
-- Dal `develop`'tan açılır, iş bitince `develop`'a PR edilir, merge sonrası silinir.
+- Dal `develop`'tan açılır, iş bitince `develop`'a PR edilir. Dallar merge sonrası **silinmez** (geçmiş izlenebilir kalsın).
 
 ## 3. Commit mesajı (Conventional Commits)
 
@@ -48,6 +48,8 @@ exp(asr): tiny vs base WER karşılaştırması
 Tipler: `feat`, `fix`, `test`, `docs`, `refactor`, `chore`, `exp`. Kapsam parantez içinde modül adı.
 
 ## 4. Pull Request kuralları
+
+- Claude Code kullanıyorsanız commit/PR'lara otomatik "Co-Authored-By: Claude" eklenmesini kapatın: `~/.claude/settings.json` → `"attribution": {"commit": "", "pr": ""}`. Yazar her zaman gerçek ekip üyesidir.
 
 - Küçük PR: ideal < 300 satır. Büyükse böl.
 - Şablonu doldur: ne / neden / nasıl test edildi / hangi OS'te denendi.
