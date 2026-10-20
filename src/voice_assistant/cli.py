@@ -163,7 +163,19 @@ def run_info(container, presenter: ConsolePresenter) -> int:  # type: ignore[no-
     return 0
 
 
+def _force_utf8_stdio() -> None:
+    """Windows konsolu varsayılan olarak cp1252 kullanır; Türkçe karakterler çökmesin."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            try:
+                reconfigure(encoding="utf-8", errors="replace")
+            except (ValueError, OSError):  # kapalı/yönlendirilmiş akış
+                pass
+
+
 def main(argv: list[str] | None = None) -> int:
+    _force_utf8_stdio()
     args = _parser().parse_args(argv)
     setup_logging(args.log_level)
     from voice_assistant.wiring import build_container
