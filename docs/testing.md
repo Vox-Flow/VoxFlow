@@ -60,3 +60,5 @@ Ortam: Arch Linux, PipeWire, dahili mikrofon (HDA Intel ALC256), Python 3.14, so
 | **Bulgu 1:** Enter'a hemen basınca 0.01 sn'lik kayıt hata vermeden ASR'a gidiyordu | düzeltildi: `MIN_SECONDS=0.3`, "Kayıt çok kısa" hatası |
 | **Bulgu 2:** ilk gerçek kayıtta tepe değer 1.05 (kırpılma) | eklendi: tam ölçekli örnek oranı >%0.1 ise uyarı; kullanıcıya kazanç düşürme önerisi |
 Sessiz kayıt yolu (RMS<1e-4) gerçek mikrofonla tetiklenemedi (oda gürültüsü yeterli); birim testle doğrulandı.
+| **Bulgu 3:** fish kabuğunda `uv run voxflow listen` → 8.8 sn kayıt sonrası `RuntimeError: libcublas.so.12 not found` ile çökme (GPU kütüphanesi yok) | düzeltildi: yüklemede ısınma koşusu; GPU hatasında CPU'ya düşme; transkripsiyon hataları `E_ASR_UNAVAILABLE` olarak sarılır, traceback yok |
+| **Bulgu 4:** `uv run` extras'sız çalıştırılınca ses/ASR paketlerini kaldırıyor | docs/setup.md'ye uyarı; komut `uv run --extra audio --extra asr voxflow listen` |

@@ -18,8 +18,12 @@ Veri dizini: `$VOXFLOW_DATA_DIR` ya da Linux `~/.local/share/voxflow`, Windows `
 
 ## Ses + ASR (Faz 2, isteğe bağlı)
 ```bash
-uv pip install -e '.[audio,asr]'
+uv sync --extra dev --extra audio --extra asr
+uv run --extra audio --extra asr voxflow listen     # ya da: .venv/bin/voxflow listen
 ```
+**Dikkat:** `uv run` extras verilmeden çalıştırılırsa ortamı senkronlar ve ses/ASR paketlerini **kaldırır**. Her zaman `--extra audio --extra asr` ekleyin veya doğrudan `.venv/bin/voxflow` kullanın.
+
+**GPU:** faster-whisper GPU için cuBLAS 12 ve cuDNN 9 ister. Bulunamazsa adaptör uyarı verip **otomatik CPU'ya düşer**; `base` modeli CPU'da da gerçek zamanlıdan hızlıdır. GPU istiyorsanız (Linux) `uv pip install nvidia-cublas-cu12 nvidia-cudnn-cu12` (~700 MB) ya da `config/app.json` → `"device": "cpu"` ile uyarıyı susturun.
 `config/app.json` → `"asr": {"provider": "faster_whisper", "model_size": "base", "compute_type": "int8"}`.
 
 **Model indirme (tek sefer, internetli, ekip onayıyla):** faster-whisper modelini önceden indirin; adaptör `local_files_only=True` ile çalışır, çevrimdışı yeniden indirmeye kalkmaz. `tiny` ≈ 75 MB, `base` ≈ 145 MB (CTranslate2 int8). Hangi boyutun indirileceğine ekip karar verir; bu depo indirmeyi otomatik başlatmaz.
