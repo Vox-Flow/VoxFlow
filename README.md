@@ -6,7 +6,7 @@ Resmî konu: *Ses Kayıtlarını Otomatik Yazıya Dönüştürme Uygulaması*.
 Kullanıcı terminalde Enter ile ses kaydını başlatıp bitirir → konuşma yerel ASR ile Türkçe metne çevrilir →
 niyet yorumlanır ve **doğrulanır** → yalnızca izin verilen işlem yapılır → terminalde (ve varsa yerel TTS ile) geri bildirim verilir.
 
-> Durum (2026-10-19): **Faz 1 tamamlandı** — metin modunda uçtan uca çalışan, test edilmiş dikey dilim.
+> Durum (2026-11-01): **Faz 1 tamamlandı**, Sprint 1 (1–14 Kasım) başladı: mikrofon/Whisper doğrulaması (İremsu), Ollama hibrit adaptörü (Helin), NLU test kümesi `nlu_dev_v1` (66 örnek) ve model kıyası hazır (Melike).
 > Ses/ASR adaptör iskeleti hazır ama gerçek mikrofon/modelle **test edilmedi**. Fine-tuning kararı (2026-10-20): **Whisper ana izlek**, Qwen eğitilmeden hibrit NLU (ADR-008/009).
 
 ## Hızlı başlangıç (internet ve model gerektirmez)
@@ -15,7 +15,7 @@ uv venv .venv && uv pip install -e '.[dev]'
 .venv/bin/voxflow --text "görev ekle" --text "Matematik ödevi"   # çok turlu akış
 .venv/bin/voxflow chat                                             # etkileşimli metin modu
 .venv/bin/voxflow info                                             # adaptör/ortam durumu
-.venv/bin/python -m pytest                                         # 97 test, ~0.3 sn
+.venv/bin/python -m pytest                                         # 102 test, <1 sn
 ```
 Ayrıntılı kurulum, çevrimdışı mod ve ses/ASR seçenekleri: [`docs/setup.md`](docs/setup.md).
 
