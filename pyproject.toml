@@ -49,6 +49,7 @@ ignore = ["S101"]  # testlerde assert serbest
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S"]
+"experiments/nlu/bench_ollama_quick.py" = ["E501"]  # uzun prompt satırları
 
 [tool.mypy]
 python_version = "3.11"
