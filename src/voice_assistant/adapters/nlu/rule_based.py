@@ -32,7 +32,7 @@ UNSUPPORTED_PATTERNS: tuple[tuple[str, str], ...] = (
     (r"\b(saat kaç|tarih ne)", "saat/tarih sorgusu"),
     (r"\b(bilgisayarı|sistemi)\s+(kapat|yeniden başlat)", "bilgisayarı kapatma"),
     (r"\b(dosya|klasör)\s+(sil|oluştur|taşı)", "dosya işlemleri"),
-    (r"\b(komut|terminal(de)?)\s+(çalıştır|yaz)", "serbest komut çalıştırma"),
+    (r"\b(komut|terminal(de)?)\b.*?\b(çalıştır|yaz)", "serbest komut çalıştırma"),
 )
 
 _TASK_RE = re.compile(
@@ -53,15 +53,14 @@ _NOTE_SUFFIX2_RE = re.compile(r"^(?P<rest>.+?)\s+notu(?:nu)?\s+(?:al|ekle|oluşt
 _LIST_TASKS_RE = re.compile(
     r"(görev(ler)?(im)?(i|ı)?\s+(listele|göster|say|oku|neler|nelerdir|var mı|neymiş))"
     r"|(görevler(im)?\s*(ne(ler)?|neydi)?\s*$)|(^görevlerim$)|(hangi görevler(im)? var)"
-    r"|(yapılacaklar(ı|ım)?\s+(listele|göster|neler))|(^yapılacaklar(ım)?$)"
+    r"|(yapılacaklar(ı|ım)?(\s+listesi(ni)?)?\s+(listele|göster|neler))|(^yapılacaklar(\s+listesi)?(ım)?$)"
 )
 _SHOW_HISTORY_RE = re.compile(
     r"geçmiş(i|imi)?\s+(göster|listele|oku|aç)|(son\s+)?komutlar(ım)?(ı)?\s+(göster|listele)"
 )
 _CLEAR_HISTORY_RE = re.compile(r"geçmiş(i|imi)?\s+(sil|temizle|kaldır)")
 _OPEN_RE = re.compile(
-    r"^(?P<target>.+?)\s*(?:'?[yn]?[iıuü])?\s+"
-    r"(?:uygulamasını\s+|sitesini\s+|web sitesini\s+|sayfasını\s+|programını\s+)?"
+    r"^(?P<target>.+?)\s+"
     r"(?:aç|başlat|çalıştır|gir)(?:ar mısın|abilir misin|sana)?$"
 )
 _OPEN_PREFIX_RE = re.compile(r"^(?:aç|başlat)\s+(?P<target>.+)$")
@@ -276,7 +275,13 @@ class RuleBasedInterpreter:
         if site:
             return self._res(Intent.OPEN_WEBSITE, raw, params={"site": site})
         # "aç" anlaşıldı ama hedef izin listesinde değil
-        if re.search(r"\b(site|sitesi|web|sayfa)", t):
+        clean_target = re.split(r"['’\s]", target, maxsplit=1)[0].strip()
+        if not clean_target:
+            clean_target = target
+        if re.search(
+            r"\b(site|sitesi|web|sayfa|instagram|facebook|twitter|tiktok|reddit|linkedin|youtube|google|wikipedia|ekampus)\b",
+            t,
+        ):
             intent = Intent.OPEN_WEBSITE
             key = "site"
         else:
@@ -285,8 +290,8 @@ class RuleBasedInterpreter:
         return self._res(
             intent,
             raw,
-            params={f"requested_{key}": target},
-            question=f"'{target}' izin verilen "
+            params={f"requested_{key}": clean_target},
+            question=f"'{clean_target}' izin verilen "
             f"{'siteler' if key == 'site' else 'uygulamalar'} arasında değil. "
             + self._allowed_hint(key),
             needs_clarification=True,
@@ -298,13 +303,32 @@ class RuleBasedInterpreter:
 
     def _lookup(self, target: str, table: dict[str, list[str]]) -> str | None:
         target_n = normalize(target)
-        # Türkçe belirtme eki temizliği: "youtube u", "firefox u", "hesap makinesini"
-        candidates = {target_n, re.sub(r"\s+[yn]?[iıuü]$", "", target_n)}
-        candidates.add(re.sub(r"(s)?[iıuü]n[iıuü]$", "", target_n))
-        candidates.add(re.sub(r"[yn]?[iıuü]$", "", target_n))
+        # Türkçe belirtme ve niteleme eki temizliği
+        candidates = {target_n}
+        candidates.add(re.sub(r"\s+[yn]?[ıiuü]$", "", target_n))
+        candidates.add(
+            re.sub(
+                r"\s+(?:web\s+)?(?:sitesi|sayfas[ıi]|uygulamas[ıi]|program[ıi])(?:n[ıiuü]|[ıiuü])?$",
+                "",
+                target_n,
+            )
+        )
+        candidates.add(
+            re.sub(
+                r"\s+(?:web\s+)?(?:site|sayfa|uygulama|program)(?:n[ıiuü]|[ıiuü])?$",
+                "",
+                target_n,
+            )
+        )
+        candidates.add(re.sub(r"n[ıiuü]$", "", target_n))
+        candidates.add(re.sub(r"(s)?[ıiuü]n[ıiuü]$", "", target_n))
+        candidates.add(re.sub(r"[yn]?[ıiuü]$", "", target_n))
+
+        cleaned_candidates = {c.strip() for c in candidates if c.strip()}
+
         for key, aliases in table.items():
             for alias in aliases:
-                if alias in candidates:
+                if alias in cleaned_candidates:
                     return key
         # Alias metnin tamamına eşit değil ama metin içinde geçiyorsa (örn. "bana firefox")
         for key, aliases in table.items():
