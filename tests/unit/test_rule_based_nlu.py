@@ -43,7 +43,11 @@ from voice_assistant.domain.schemas import Intent
         ("görevi sil", Intent.UNSUPPORTED, {"requested": "görev silme"}),
         ("matematik görevini tamamla", Intent.UNSUPPORTED, {"requested": "görev tamamlama"}),
         ("bilgisayarı kapat", Intent.UNSUPPORTED, {"requested": "bilgisayarı kapatma"}),
-        ("terminalde ls komutu çalıştır", Intent.UNSUPPORTED, {"requested": "serbest komut çalıştırma"}),
+        (
+            "terminalde ls komutu çalıştır",
+            Intent.UNSUPPORTED,
+            {"requested": "serbest komut çalıştırma"},
+        ),
         ("hava durumu nasıl", Intent.UNSUPPORTED, {"requested": "hava durumu sorgusu"}),
         ("asdf qwer", Intent.UNKNOWN, {}),
         ("", Intent.UNKNOWN, {}),
