@@ -26,7 +26,7 @@ class AsrConfig(BaseModel):
 
 class NluConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
-    provider: Literal["rule_based", "ollama"] = "rule_based"
+    provider: Literal["rule_based", "ollama", "hybrid"] = "rule_based"
     ollama_model: str = "qwen2.5:latest"
     ollama_url: str = "http://127.0.0.1:11434"
     timeout_s: float = 30

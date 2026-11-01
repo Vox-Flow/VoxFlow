@@ -36,9 +36,9 @@ def build_interpreter(
     cfg: AppConfig, launcher: AllowlistLauncher, warnings: list[str]
 ) -> IntentInterpreter:
     rule = RuleBasedInterpreter(launcher.app_aliases(), launcher.site_aliases())
-    if cfg.nlu.provider == "ollama":
+    if cfg.nlu.provider in ("ollama", "hybrid"):
         try:
-            from voice_assistant.adapters.nlu.ollama_qwen import OllamaInterpreter
+            from voice_assistant.adapters.nlu.ollama_qwen import HybridInterpreter, OllamaInterpreter
 
             llm = OllamaInterpreter(
                 model=cfg.nlu.ollama_model,
@@ -51,6 +51,8 @@ def build_interpreter(
             if not llm.is_available():
                 warnings.append("Ollama sunucusuna ulaşılamadı; kurallı yorumlayıcı kullanılıyor.")
                 return rule
+            if cfg.nlu.provider == "hybrid":
+                return HybridInterpreter(rule_based=rule, ollama=llm)
             return llm
         except Exception as exc:  # noqa: BLE001
             warnings.append(
