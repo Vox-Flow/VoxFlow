@@ -2,7 +2,19 @@
 
 Roller: **H** Helin (entegrasyon lideri), **İ** İremsu (ses/ASR), **M** Melike (veri/test/CLI). Her iş: sorumlu / destekçi / kabul kriteri / bağımlılık / test / çıktı. Her PR'ı başka bir üye gözden geçirir.
 
-## Faz 1 — tamamlanan iskelet (bu oturum)
+## Sprint 1 (1–14 Kasım 2026) — kanban: https://github.com/orgs/Vox-Flow/projects/3
+| Issue | İş | Sahip | Durum (2026-11-01) |
+|---|---|---|---|
+| #1 | Mikrofon kaydı doğrulaması | İremsu | başlanmadı |
+| #2 | faster-whisper base, çevrimdışı | İremsu | başlanmadı |
+| #17 | İzin formu, kayıt protokolü, konuşmacı planı | İremsu | başlanmadı; komut listesi nlu_dev_v1'den türetilecek |
+| #5 | OllamaInterpreter + hybrid | Helin | başlanmadı; model adayları: qwen3:4b-instruct-2507 (varsayılan), qwen3:8b (6 GB VRAM'de dene) |
+| #21 | Kurallı yorumlayıcıdaki 5 hata | Helin | açık |
+| #6 | NLU test manifesti v1 | Melike | PR #20 |
+| #13 | README/docs güncelleme | Melike | bu PR |
+| #11 | Uçtan uca değerlendirme protokolü | Melike | protokol + betik iskeleti (ses bekliyor) |
+
+## Faz 1 — tamamlanan iskelet
 | # | İş | Sorumlu | Durum |
 |---|---|---|---|
 | 1 | Domain şemaları, port protokolleri | H | ✅ kod + test |
@@ -27,11 +39,12 @@ Roller: **H** Helin (entegrasyon lideri), **İ** İremsu (ses/ASR), **M** Melike
 | 12 | 50+ Türkçe komut NLU manifesti (farklı söyleyişler, unsupported, boş) | M | H, İ | en az 5 örnek/niyet; konuşmacı/varyant sızıntısı yok | – | `datasets/manifests/nlu_*.jsonl` |
 | 13 | Kural vs Qwen karşılaştırma betiği (accuracy, macro-F1, slot EM, geçerli JSON, gecikme) | M | H | aynı test kümesi; rapor tablo | #11, #12 | `experiments/nlu/compare.py`, `experiments/reports/` |
 
-## Faz 4 — eğitim (HOCA YANITI BEKLENİYOR)
+## Faz 4 — eğitim (KARAR: Whisper ana izlek, ADR-008)
 | # | İş | Sorumlu | Not |
 |---|---|---|---|
-| 14a | ASR izleği: Whisper tiny/base fine-tune konfig iskeleti (HF Trainer/PEFT), smoke test sentetik 3 örnek | İ | yalnızca hoca ASR derse |
-| 14b | NLU izleği: Qwen2.5 0.5B/1.5B QLoRA konfig iskeleti, smoke test | H | yalnızca hoca NLU derse; 4 GB VRAM sınırı |
+| 14a | **ANA İZLEK** Whisper base fine-tune: konfig, manifest doğrulama, smoke test, gerçek eğitim, CT2'ye çevirme, baseline ile aynı testte karşılaştırma | İ (destek M) | iskelet `experiments/asr/` hazır; model indirme ekip onayıyla |
+| 14b | (isteğe bağlı yan deney) Qwen2.5 LoRA — yalnızca zaman kalırsa; ana teslimin parçası değil | H | ADR-009 |
+| 14c | Ses kayıt izin formu + kayıt protokolü + gönüllü konuşmacı planı (≥8 konuşmacı) | İ (destek M) | `docs/consent_form_tr.md` |
 | 15 | Deney kayıt şablonu (config/seed/model/veri sürümü/metrik) | M | her iki izlek için ortak |
 
 ## Faz 5 — teslim

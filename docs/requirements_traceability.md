@@ -16,3 +16,7 @@
 | D shell yok, LLM komutu yok | `Popen(list, shell=False)`, dispatcher tablosu | `test_open_app_uses_fixed_argv`, `test_unknown_keys_are_dropped` |
 | D prompt injection = düz metin | NLU metni yalnızca slot | `test_prompt_injection_text_is_just_text` |
 | D atomik JSON, bozuk dosya | `JsonStore._write/_read` | `test_corrupted_file_raises`, `test_no_temp_files_left`, `test_backup_created_on_rewrite` |
+| Ek: ≥50 komutla değerlendirme | `datasets/manifests/nlu_dev_v1.jsonl` (66), `experiments/nlu/eval_rule_based.py`, `docs/evaluation_protocol.md` | `test_asr_manifest_validation.py`; ölçüm raporları `experiments/reports/` |
+| F: fine-tune hedefi ASR; NLU eğitilmez | ADR-008, ADR-009; `experiments/asr/train_whisper.py`; hibrit NLU planı | `train_whisper.py --dry-run`; `bench_ollama_quick.py` |
+| G: ASR/NLU manifest ayrımı, konuşmacı sızıntısı | `docs/dataset_protocol.md`, `experiments/asr/validate_manifest.py` | `test_speaker_leak_detected`, `test_missing_consent_is_error` |
+| G: izinli, anonim ses toplama | `docs/consent_form_tr.md` | manuel (ekip onayı, #17) |
