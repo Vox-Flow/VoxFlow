@@ -26,6 +26,10 @@ uv run --extra audio --extra asr voxflow listen     # ya da: .venv/bin/voxflow l
 **GPU:** faster-whisper GPU için cuBLAS 12 ve cuDNN 9 ister. Bulunamazsa adaptör uyarı verip **otomatik CPU'ya düşer**; `base` modeli CPU'da da gerçek zamanlıdan hızlıdır. GPU istiyorsanız (Linux) `uv pip install nvidia-cublas-cu12 nvidia-cudnn-cu12` (~700 MB) ya da `config/app.json` → `"device": "cpu"` ile uyarıyı susturun.
 `config/app.json` → `"asr": {"provider": "faster_whisper", "model_size": "base", "compute_type": "int8"}`.
 
+**Alan sözlüğü ipucu:** adaptör Whisper'a `initial_prompt` olarak komut kalıplarını ve izinli uygulama/site adlarını verir (otomatik; `asr.initial_prompt` ile özelleştirilebilir). Fine-tune değildir, yabancı adlarda ve kısa komutlarda yardımcı olur.
+
+**Model boyutu:** `base` (~145 MB int8) Türkçe kısa komutlarda zayıf kalabilir; `small` (~480 MB int8) belirgin daha iyi ve CPU'da hâlâ gerçek zamanlıdan hızlı. Ekip kararı: ikisi aynı 10 cümlede karşılaştırılır.
+
 **Model indirme (tek sefer, internetli, ekip onayıyla):** faster-whisper modelini önceden indirin; adaptör `local_files_only=True` ile çalışır, çevrimdışı yeniden indirmeye kalkmaz. `tiny` ≈ 75 MB, `base` ≈ 145 MB (CTranslate2 int8). Hangi boyutun indirileceğine ekip karar verir; bu depo indirmeyi otomatik başlatmaz.
 
 ## Uçak modu kontrol listesi
