@@ -18,7 +18,7 @@ MODELS = sys.argv[1:]
 rows = [
     json.loads(line)
     for line in open("datasets/manifests/nlu_dev_v1.jsonl", encoding="utf-8")
-    if l.strip()
+    if line.strip()
 ]
 APPS = ["firefox", "hesap_makinesi", "metin_editoru", "terminal", "dosya_yoneticisi"]
 SITES = ["youtube", "google", "github", "wikipedia", "ekampus"]
