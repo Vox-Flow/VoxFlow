@@ -38,7 +38,10 @@ def build_interpreter(
     rule = RuleBasedInterpreter(launcher.app_aliases(), launcher.site_aliases())
     if cfg.nlu.provider in ("ollama", "hybrid"):
         try:
-            from voice_assistant.adapters.nlu.ollama_qwen import HybridInterpreter, OllamaInterpreter
+            from voice_assistant.adapters.nlu.ollama_qwen import (
+                HybridInterpreter,
+                OllamaInterpreter,
+            )
 
             llm = OllamaInterpreter(
                 model=cfg.nlu.ollama_model,
