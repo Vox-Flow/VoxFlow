@@ -31,7 +31,8 @@ Ayrıntı: `docs/evaluation_protocol.md`. Üç ayrı ölçüm: ASR (WER/CER), NL
 |---|---|---|
 | 2026-11-01 | Kurallı NLU, nlu_dev_v1: intent acc 0.955, slot EM 0.924 | `experiments/reports/2026-11-01_nlu_rule_based_v1.md` |
 | 2026-11-01 | Ollama model kıyası (qwen2.5 1.5b/3b, gemma3 4b, llama3.2 3b): en iyi qwen2.5:3b few-shot 0.879 | `experiments/reports/2026-11-01_nlu_ollama_model_bench.md` |
-Henüz ölçülmeyen: ASR (WER), uçtan uca işlem başarı oranı, gerçek mikrofon.
+| 2026-11-01 | Whisper base vs small gerçek mikrofon duman testi (n≈10, tek konuşmacı): small + initial_prompt tüm komutları doğru yazdı | `experiments/reports/2026-11-01_asr_whisper_base_vs_small_smoke.md` |
+Henüz ölçülmeyen: ASR WER (konuşmacı-ayrık küme), uçtan uca sesli işlem başarı oranı.
 
 ## Platform doğrulama tablosu (manuel)
 | Özellik | Linux | Windows | macOS |

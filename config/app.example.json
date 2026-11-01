@@ -3,7 +3,7 @@
   "data_dir": null,
   "asr": {
     "provider": "mock",
-    "model_size": "base",
+    "model_size": "small",
     "device": "auto",
     "compute_type": "int8"
   },
