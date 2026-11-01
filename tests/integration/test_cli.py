@@ -46,6 +46,8 @@ def test_cli_open_site_is_mocked(tmp_path, capsys, no_real_launch) -> None:  # t
 
 
 def test_cli_info(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
-    assert cli.main(["--data-dir", str(tmp_path), "info"]) == 0
+    assert (
+        cli.main(["--config", "config/app.example.json", "--data-dir", str(tmp_path), "info"]) == 0
+    )
     out = capsys.readouterr().out
     assert "rule_based" in out and "mock" in out

@@ -22,6 +22,9 @@ class AsrConfig(BaseModel):
     model_size: str = "base"
     device: str = "auto"
     compute_type: str = "int8"
+    initial_prompt: str | None = (
+        None  # None: izinli uygulama/site adları + komut kalıplarından üretilir
+    )
 
 
 class NluConfig(BaseModel):
