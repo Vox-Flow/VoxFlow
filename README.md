@@ -7,7 +7,7 @@ Kullanıcı terminalde Enter ile ses kaydını başlatıp bitirir → konuşma y
 niyet yorumlanır ve **doğrulanır** → yalnızca izin verilen işlem yapılır → terminalde (ve varsa yerel TTS ile) geri bildirim verilir.
 
 > Durum (2026-10-19): **Faz 1 tamamlandı** — metin modunda uçtan uca çalışan, test edilmiş dikey dilim.
-> Ses/ASR adaptör iskeleti hazır ama gerçek mikrofon/modelle **test edilmedi**. Model fine-tuning hedefi (ASR mi NLU mu) **hoca yanıtı bekliyor**.
+> Ses/ASR adaptör iskeleti hazır ama gerçek mikrofon/modelle **test edilmedi**. Fine-tuning kararı (2026-10-20): **Whisper ana izlek**, Qwen eğitilmeden hibrit NLU (ADR-008/009).
 
 ## Hızlı başlangıç (internet ve model gerektirmez)
 ```bash
@@ -56,8 +56,8 @@ experiments/           nlu/eval_rule_based.py  asr/eval_wer.py  reports/ (boş: 
 docs/                  architecture, interfaces, decisions (ADR), testing, setup, team_tasks, traceability, dataset_protocol
 ```
 
-## Model eğitimi — açık karar
-Ders başlığı ASR olduğu için Whisper (faster-whisper) değerlendirmesi zorunlu; hocanın yanıtına göre **ya** Whisper fine-tune (ses+metin çiftleri, WER/CER) **ya da** Qwen LoRA (komut→JSON, intent acc/slot EM) ana izlek olacak. İkisi birbirinin yerine geçmez. Bu depo iki izlek için adaptör, manifest şeması ve değerlendirme iskeletini içerir; **hiçbir model indirilmedi, hiçbir eğitim yapılmadı, hiçbir performans ölçülmedi.** Bkz. `docs/decisions.md` ADR-007.
+## Model eğitimi — karar verildi (2026-10-20)
+Hoca: "hazır bir modeli kendi verilerinizle fine-tune etmeniz yeterli." Ekip kararı: **Whisper (`openai/whisper-base`) kendi ses kayıtlarımızla fine-tune edilir** (WER/CER + uçtan uca işlem doğruluğu, konuşmacı-ayrık test). NLU tarafında Qwen2.5 **eğitilmez**; Ollama üzerinden hazır haliyle, hibrit modda (önce kural, bilinmezse LLM) isteğe bağlı kullanılır. Ayrıntı ve riskler: `docs/decisions.md` ADR-008, ADR-009. **Henüz hiçbir model indirilmedi, eğitim yapılmadı, performans ölçülmedi.**
 
 ## Ekip
 Görev dağılımı ve kabul kriterleri: [`docs/team_tasks.md`](docs/team_tasks.md). Her PR başka bir üye tarafından gözden geçirilir.
