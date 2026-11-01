@@ -25,6 +25,7 @@ from voice_assistant.domain.schemas import Intent
         ("toplantı saat üçte diye not al", Intent.CREATE_NOTE, {"content": "toplantı saat üçte"}),
         ("görevleri listele", Intent.LIST_TASKS, {}),
         ("görevlerim neler", Intent.LIST_TASKS, {}),
+        ("yapılacaklar listesini göster", Intent.LIST_TASKS, {}),
         ("yarınki görevleri göster", Intent.LIST_TASKS, {"date": "2026-10-20"}),
         ("geçmişi göster", Intent.SHOW_HISTORY, {}),
         ("geçmişi sil", Intent.CLEAR_HISTORY, {}),
@@ -35,11 +36,14 @@ from voice_assistant.domain.schemas import Intent
         ("youtube aç", Intent.OPEN_WEBSITE, {"site": "youtube"}),
         ("youtube'u aç", Intent.OPEN_WEBSITE, {"site": "youtube"}),
         ("github sitesini aç", Intent.OPEN_WEBSITE, {"site": "github"}),
+        ("vikipedi sayfasını aç", Intent.OPEN_WEBSITE, {"site": "wikipedia"}),
+        ("okul sitesini aç", Intent.OPEN_WEBSITE, {"site": "ekampus"}),
         ("vazgeçtim", Intent.CANCEL, {}),
         ("iptal et", Intent.CANCEL, {}),
         ("görevi sil", Intent.UNSUPPORTED, {"requested": "görev silme"}),
         ("matematik görevini tamamla", Intent.UNSUPPORTED, {"requested": "görev tamamlama"}),
         ("bilgisayarı kapat", Intent.UNSUPPORTED, {"requested": "bilgisayarı kapatma"}),
+        ("terminalde ls komutu çalıştır", Intent.UNSUPPORTED, {"requested": "serbest komut çalıştırma"}),
         ("hava durumu nasıl", Intent.UNSUPPORTED, {"requested": "hava durumu sorgusu"}),
         ("asdf qwer", Intent.UNKNOWN, {}),
         ("", Intent.UNKNOWN, {}),
@@ -66,6 +70,14 @@ def test_unknown_app_is_clarification_not_execution(interpreter):  # type: ignor
     assert r.intent == Intent.OPEN_APP
     assert "app" not in r.parameters
     assert r.needs_clarification
+
+
+def test_unknown_site_is_clarification_with_site_hint(interpreter):  # type: ignore[no-untyped-def]
+    r = interpreter.interpret("instagram'ı aç", DialogueState())
+    assert r.intent == Intent.OPEN_WEBSITE
+    assert "site" not in r.parameters
+    assert r.needs_clarification
+    assert r.clarification_question and "siteler arasında değil" in r.clarification_question
 
 
 def test_pending_title_is_filled(interpreter):  # type: ignore[no-untyped-def]
