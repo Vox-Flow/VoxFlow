@@ -71,7 +71,8 @@ def ask(model, r):
         {"Content-Type": "application/json"},
     )
     t0 = time.perf_counter()
-    out = json.loads(urllib.request.urlopen(req, timeout=120)  # noqa: S310 - sabit localhost URL.read())["message"]["content"]
+    resp = urllib.request.urlopen(req, timeout=120)  # noqa: S310 - sabit localhost URL
+    out = json.loads(resp.read())["message"]["content"]
     return out, time.perf_counter() - t0
 
 
