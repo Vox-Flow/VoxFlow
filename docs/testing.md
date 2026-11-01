@@ -37,12 +37,26 @@ Henüz ölçülmeyen: ASR (WER), uçtan uca işlem başarı oranı, gerçek mikr
 | Özellik | Linux | Windows | macOS |
 |---|---|---|---|
 | `--text` / `chat` akışları | ✅ Melike, 2026-10-19 | – | – |
+| ASR hazır değilken `listen` uyarısı | ✅ Melike, 2026-11-01 (E_ASR_UNAVAILABLE, çökme yok) | – | – |
 | `voxflow info` | ✅ Melike, 2026-10-19 | – | – |
 | Uygulama açma (gerçek) | – | – | – |
 | Site açma (gerçek tarayıcı) | – | – | – |
-| `listen` mikrofon kaydı | – | – | – |
+| `listen` mikrofon kaydı | ✅ Melike, 2026-11-01 (dahili mikrofon, PipeWire; loopback ile sentetik sinyal de doğrulandı) | – | – |
 | faster-whisper transkripsiyon | – | – | – |
 "–" = henüz denenmedi. CI (GitHub Actions) üç OS'te yalnızca pytest/ruff/CLI duman testini koşar.
 
 ### CI'nın yakaladığı platform hatası (2026-10-19)
 Windows runner'da `UnicodeEncodeError: 'charmap' codec can't encode character 'ğ'`: Windows konsolu cp1252 kullanıyor. Çözüm: `cli.main` başında stdout/stderr UTF-8'e `reconfigure` edilir; CI'da `PYTHONUTF8=1`. Linux/macOS etkilenmedi.
+
+### Linux mikrofon denemesi (2026-11-01, Melike)
+Ortam: Arch Linux, PipeWire, dahili mikrofon (HDA Intel ALC256), Python 3.14, sounddevice 0.5.6.
+| Kontrol | Sonuç |
+|---|---|
+| 2 sn gerçek kayıt, 16 kHz mono float32 | ✅ |
+| ALSA loopback ile 440 Hz sentetik sinyal | ✅ rms 0.19, mono, 2.36 sn |
+| stop-before-start / çift start / close | ✅ anlaşılır AudioError |
+| CLI `listen` Enter-Enter-çık akışı (mock ASR) | ✅ |
+| ASR yokken `listen` | ✅ E_ASR_UNAVAILABLE mesajı, metin moduna yönlendirme |
+| **Bulgu 1:** Enter'a hemen basınca 0.01 sn'lik kayıt hata vermeden ASR'a gidiyordu | düzeltildi: `MIN_SECONDS=0.3`, "Kayıt çok kısa" hatası |
+| **Bulgu 2:** ilk gerçek kayıtta tepe değer 1.05 (kırpılma) | eklendi: tam ölçekli örnek oranı >%0.1 ise uyarı; kullanıcıya kazanç düşürme önerisi |
+Sessiz kayıt yolu (RMS<1e-4) gerçek mikrofonla tetiklenemedi (oda gürültüsü yeterli); birim testle doğrulandı.
