@@ -24,8 +24,12 @@ class FasterWhisperRecognizer:
         compute_type: str = "int8",
         download_root: str | None = None,
         local_files_only: bool = True,
+        initial_prompt: str | None = None,
     ) -> None:
         self.model_size = model_size
+        # Alan sözlüğü ipucu: Whisper çözümlemeyi bu kelimelere doğru yönlendirir
+        # (fine-tune değildir; "firefox", "youtube" gibi adlarda ve kısa komutlarda yardımcı olur).
+        self.initial_prompt = initial_prompt
         self.device = device
         self.compute_type = compute_type
         self._download_root = download_root
@@ -97,7 +101,12 @@ class FasterWhisperRecognizer:
         t0 = time.perf_counter()
         try:
             segments, info = self._model.transcribe(
-                audio, language="tr", task="transcribe", beam_size=5, vad_filter=True
+                audio,
+                language="tr",
+                task="transcribe",
+                beam_size=5,
+                vad_filter=True,
+                initial_prompt=self.initial_prompt,
             )
             text = " ".join(s.text.strip() for s in segments).strip()
         except Exception as exc:  # noqa: BLE001 - CTranslate2/CUDA hataları çeşitli tiplerde
@@ -116,5 +125,6 @@ class FasterWhisperRecognizer:
                 "language_probability": getattr(info, "language_probability", None),
                 "device": self.device,
                 "compute_type": self.compute_type,
+                "initial_prompt": bool(self.initial_prompt),
             },
         )

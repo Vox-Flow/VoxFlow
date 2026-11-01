@@ -87,3 +87,37 @@ def test_package_missing_message(monkeypatch) -> None:  # type: ignore[no-untype
     assert not r.is_available()
     with pytest.raises(AsrUnavailableError, match="kurulu değil"):
         r.transcribe(PcmClip(np.zeros(16000, dtype="float32"), 16000))
+
+
+def test_initial_prompt_is_passed_to_model(monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    seen: dict = {}
+
+    class Fake:
+        def __init__(self, *a, **k):  # type: ignore[no-untyped-def]
+            pass
+
+        def transcribe(self, audio, **kw):  # type: ignore[no-untyped-def]
+            seen.update(kw)
+            return iter([_Seg("firefox aç")]), _Info()
+
+    _install_fake(monkeypatch, Fake)
+    r = FasterWhisperRecognizer("base", "cpu", "int8", initial_prompt="komutlar: firefox aç")
+    tr = r.transcribe(PcmClip(np.zeros(16000, dtype="float32"), 16000))
+    assert seen["initial_prompt"] == "komutlar: firefox aç"
+    assert seen["task"] == "transcribe" and seen["language"] == "tr"
+    assert tr.diagnostics["initial_prompt"] is True
+
+
+def test_build_asr_prompt_contains_allowlist_names() -> None:
+    from voice_assistant.adapters.platforms.launcher import AllowlistLauncher, AppSpec, SiteSpec
+    from voice_assistant.wiring import build_asr_prompt
+
+    launcher = AllowlistLauncher(
+        {"firefox": AppSpec("firefox", ("firefox", "tarayıcı"), {"linux": ("firefox",)})},
+        {"youtube": SiteSpec("youtube", "https://www.youtube.com", ("youtube", "yutup"))},
+        platform_name="linux",
+        spawn=lambda a: None,
+        open_url=lambda u: True,
+    )
+    p = build_asr_prompt(launcher)
+    assert "firefox" in p and "youtube" in p and "görev ekle" in p and len(p) < 800
