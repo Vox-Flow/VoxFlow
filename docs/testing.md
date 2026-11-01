@@ -23,9 +23,15 @@ uv venv .venv && uv pip install -e '.[dev]'
 - Ollama adaptörü (Faz 3'te yazılacak).
 - Windows/macOS komut yolları (yalnızca kod yolu; `platform_name` parametresi ile birim testte simüle edilebilir).
 
-## Değerlendirme protokolü (Faz 5 için taslak)
-- ≥50 gerçek komut; `datasets/manifests/nlu_*.jsonl`. Intent accuracy, slot exact-match ve **işlem başarı oranı ayrı** raporlanır.
-- Hedef %90 doğru işlem seçimi — ölçülmeden yazılmaz.
+## Değerlendirme protokolü
+Ayrıntı: `docs/evaluation_protocol.md`. Üç ayrı ölçüm: ASR (WER/CER), NLU (intent accuracy, macro-F1, slot EM) ve **işlem başarı oranı** (doğru fonksiyon, doğru parametreyle, mock launcher ile). Metin kümesi: `datasets/manifests/nlu_dev_v1.jsonl` (66, dondurulmuş). Hedef %90 doğru işlem seçimi — ölçülmeden yazılmaz.
+
+## Yapılan ölçümler
+| Tarih | Ne | Rapor |
+|---|---|---|
+| 2026-11-01 | Kurallı NLU, nlu_dev_v1: intent acc 0.955, slot EM 0.924 | `experiments/reports/2026-11-01_nlu_rule_based_v1.md` |
+| 2026-11-01 | Ollama model kıyası (qwen2.5 1.5b/3b, gemma3 4b, llama3.2 3b): en iyi qwen2.5:3b few-shot 0.879 | `experiments/reports/2026-11-01_nlu_ollama_model_bench.md` |
+Henüz ölçülmeyen: ASR (WER), uçtan uca işlem başarı oranı, gerçek mikrofon.
 
 ## Platform doğrulama tablosu (manuel)
 | Özellik | Linux | Windows | macOS |
