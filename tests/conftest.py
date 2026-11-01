@@ -25,6 +25,8 @@ APPS = {
 SITES = {
     "youtube": SiteSpec("youtube", "https://www.youtube.com", ("youtube", "yutup")),
     "github": SiteSpec("github", "https://github.com", ("github",)),
+    "wikipedia": SiteSpec("wikipedia", "https://tr.wikipedia.org", ("wikipedia", "vikipedi")),
+    "ekampus": SiteSpec("ekampus", "https://example.edu", ("e kampüs", "ekampüs", "okul sitesi")),
 }
 
 

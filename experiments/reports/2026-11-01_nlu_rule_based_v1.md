@@ -13,12 +13,12 @@
 | Donanım | CPU (Linux, i7 11. nesil) |
 
 ## Metrikler
-| Metrik | Değer |
-|---|---|
-| intent accuracy | 0.9545 (63/66) |
-| macro-F1 | 0.9636 |
-| slot exact match | 0.9242 (61/66) |
-| gecikme (ort.) | 0.095 ms |
+| Metrik | Değer (Baseline) | Düzeltme Sonrası (#21) |
+|---|---|---|
+| intent accuracy | 0.9545 (63/66) | **1.0000 (66/66)** |
+| macro-F1 | 0.9636 | **1.0000** |
+| slot exact match | 0.9242 (61/66) | **1.0000 (66/66)** |
+| gecikme (ort.) | 0.095 ms | **0.087 ms** |
 
 ## Gözlemler (5 hata)
 - `yapılacaklar listesini göster` → unknown (gold list_tasks): "listesini" eki kalıpta yok.
