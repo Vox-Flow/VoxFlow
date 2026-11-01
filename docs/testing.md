@@ -42,7 +42,7 @@ Henüz ölçülmeyen: ASR (WER), uçtan uca işlem başarı oranı, gerçek mikr
 | Uygulama açma (gerçek) | – | – | – |
 | Site açma (gerçek tarayıcı) | – | – | – |
 | `listen` mikrofon kaydı | ✅ Melike, 2026-11-01 (dahili mikrofon, PipeWire; loopback ile sentetik sinyal de doğrulandı) | – | – |
-| faster-whisper transkripsiyon | – | – | – |
+| faster-whisper transkripsiyon | ✅ Melike, 2026-11-01 (small+prompt, CPU; rapor: `experiments/reports/2026-11-01_asr_whisper_base_vs_small_smoke.md`) | – | – |
 "–" = henüz denenmedi. CI (GitHub Actions) üç OS'te yalnızca pytest/ruff/CLI duman testini koşar.
 
 ### CI'nın yakaladığı platform hatası (2026-10-19)
