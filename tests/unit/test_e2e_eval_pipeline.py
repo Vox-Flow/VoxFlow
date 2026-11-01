@@ -1,6 +1,7 @@
 """experiments/e2e/eval_pipeline.py için duman testi: gerçek uygulama/URL açılmaz."""
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -20,7 +21,7 @@ def test_pipeline_runs_on_v1_manifest_without_side_effects(tmp_path: Path) -> No
         text=True,
         check=True,
         cwd=ROOT,
-        env={"VOXFLOW_DATA_DIR": str(tmp_path), "PATH": "/usr/bin:/bin"},
+        env={**os.environ, "VOXFLOW_DATA_DIR": str(tmp_path)},
     )
     rep = json.loads(out.stdout)
     assert rep["n"] == 66
