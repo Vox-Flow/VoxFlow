@@ -1,0 +1,55 @@
+{
+  "manifest": "datasets/manifests/nlu_dev_v1.jsonl",
+  "text_field": "utterance",
+  "n": 66,
+  "intent_accuracy": 0.9545,
+  "action_success_rate": 0.9394,
+  "per_intent_action_success": {
+    "affirm": "2/2",
+    "cancel": "4/4",
+    "clear_history": "3/3",
+    "create_note": "7/7",
+    "create_task": "10/10",
+    "deny": "2/2",
+    "list_tasks": "5/6",
+    "open_app": "8/8",
+    "open_website": "4/6",
+    "show_history": "3/3",
+    "unknown": "5/5",
+    "unsupported": "9/10"
+  },
+  "failures": [
+    {
+      "id": "nlu_v1_023",
+      "text": "yapılacaklar listesini göster",
+      "gold": "list_tasks",
+      "expected": "list",
+      "got": "unknown/unknown",
+      "msg": "Bunu anlayamadım. Örnek: 'görev ekle', 'not al', 'görevleri listele', 'firefox a"
+    },
+    {
+      "id": "nlu_v1_040",
+      "text": "vikipedi sayfasını aç",
+      "gold": "open_website",
+      "expected": "open_site",
+      "got": "needs_clarification/open_website",
+      "msg": "'vikiped' izin verilen siteler arasında değil. İzinli olanlar: ekampus, github, "
+    },
+    {
+      "id": "nlu_v1_041",
+      "text": "okul sitesini aç",
+      "gold": "open_website",
+      "expected": "open_site",
+      "got": "needs_clarification/open_website",
+      "msg": "'okul' izin verilen siteler arasında değil. İzinli olanlar: ekampus, github, goo"
+    },
+    {
+      "id": "nlu_v1_059",
+      "text": "terminalde ls komutu çalıştır",
+      "gold": "unsupported",
+      "expected": "noop",
+      "got": "needs_clarification/open_app",
+      "msg": "'terminalde ls komut' izin verilen uygulamalar arasında değil. İzinli olanlar: d"
+    }
+  ]
+}
