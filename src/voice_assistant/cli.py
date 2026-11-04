@@ -5,11 +5,15 @@ Modlar:
   voxflow chat                     etkileşimli metin modu (ses/LLM gerekmez)
   voxflow listen                   Enter ile kaydı başlat/bitir -> ASR -> komut (Faz 2)
   voxflow info                     ortam/adaptör durumu
+  voxflow record --speaker spk_01 --session s01 --split train --consent team_consent_v1
+                                   veri toplama oturumu (araştırma; docs/dataset_protocol.md)
+  voxflow verify --manifest ...    kaydedilen transkriptleri dinleyip onayla/düzelt
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -20,6 +24,7 @@ from voice_assistant.logging_setup import setup_logging
 from voice_assistant.services.presenter import ConsolePresenter
 
 PROMPT = "sen> "
+DEFAULT_SENTENCES = Path("docs/recording_sentences_tr.md")
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -39,6 +44,27 @@ def _parser() -> argparse.ArgumentParser:
     sub.add_parser("chat", help="etkileşimli metin modu")
     sub.add_parser("listen", help="Enter ile ses kaydı -> ASR -> komut")
     sub.add_parser("info", help="ortam ve adaptör durumu")
+
+    rec = sub.add_parser("record", help="veri toplama oturumu (gönüllü kaydı)")
+    rec.add_argument("--speaker", required=True, help="anonim kod, örn. spk_01")
+    rec.add_argument("--session", default="s01", help="oturum kodu, örn. s01")
+    rec.add_argument("--split", required=True, choices=["train", "val", "test"])
+    rec.add_argument(
+        "--consent", required=True, help="örn. team_consent_v1 — açık izin alınmadan kayıt yok"
+    )
+    rec.add_argument("--sentences", type=Path, default=DEFAULT_SENTENCES)
+    rec.add_argument("--audio-root", type=Path, default=Path("datasets/audio"))
+    rec.add_argument("--manifest", type=Path, default=None, help="varsayılan: konuşmacıya göre")
+    rec.add_argument("--environment", default="quiet", choices=["quiet", "noisy"])
+    rec.add_argument("--device-note", default="", help="mikrofon/cihaz türü (seri numarası yazma)")
+    rec.add_argument("--limit", type=int, default=None, help="bu oturumda en fazla N cümle")
+
+    ver = sub.add_parser("verify", help="kayıtları dinleyip transkripti onayla/düzelt")
+    ver.add_argument("--manifest", type=Path, required=True)
+    ver.add_argument(
+        "--sidecar", type=Path, default=None, help="varsayılan: ses dizininden bulunur"
+    )
+    ver.add_argument("--no-audio", action="store_true", help="ses çalma, yalnızca metin göster")
     return p
 
 
@@ -145,6 +171,158 @@ def run_listen(container, presenter: ConsolePresenter) -> int:  # type: ignore[n
     return 0
 
 
+def run_record(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
+    """Gönüllü kayıt oturumu. Ses yalnızca açık izinle ve yerel dizine yazılır."""
+    from voice_assistant.services.recording import RecordingSession, load_sentences
+
+    sentences = load_sentences(args.sentences)
+    manifest = args.manifest or (Path("datasets/manifests") / f"asr_{args.speaker}_real.jsonl")
+    session = RecordingSession(
+        speaker_id=args.speaker,
+        session_id=args.session,
+        split=args.split,
+        consent=args.consent,
+        audio_root=args.audio_root,
+        manifest_path=manifest,
+        environment=args.environment,
+        device=args.device_note,
+    )
+    pending = session.pending(sentences)
+    if args.limit:
+        pending = pending[: args.limit]
+    if not pending:
+        presenter.status("bu oturumda kaydedilecek cümle kalmadı")
+        print(json.dumps(session.summary(sentences), ensure_ascii=False, indent=2))
+        return 0
+
+    try:
+        from voice_assistant.adapters.audio.sounddevice_capture import SounddeviceCapture
+
+        capture = SounddeviceCapture(session.sample_rate, 1, 60)
+    except AudioError as exc:
+        presenter.show(
+            ActionResult(status=ActionStatus.ERROR, message=exc.message, error_code=exc.code)
+        )
+        return 1
+
+    presenter.status(
+        f"{args.speaker}/{args.session} — {len(pending)} cümle, {args.split}. "
+        "Her cümlede: Enter kaydet, Enter bitir. Komutlar: a=atla, ç=çık"
+    )
+    done = 0
+    try:
+        for i, sentence in enumerate(pending, 1):
+            while True:
+                print(f"\n[{i}/{len(pending)}] {sentence.id}: {sentence.text}")
+                cmd = input("[Enter: kaydet · a: atla · ç: çık] ").strip().lower()
+                if cmd in {"ç", "c", "çık", "cik", "q"}:
+                    raise KeyboardInterrupt
+                if cmd in {"a", "atla"}:
+                    break
+                try:
+                    capture.start()
+                    presenter.status("kayıt alınıyor — bitirmek için Enter")
+                    input()
+                    clip = capture.stop()
+                except AudioError as exc:
+                    presenter.show(
+                        ActionResult(
+                            status=ActionStatus.ERROR, message=exc.message, error_code=exc.code
+                        )
+                    )
+                    continue
+                samples = list(clip.to_float32())  # type: ignore[call-overload]
+                record = session.save(sentence, samples)
+                done += 1
+                flags = ", ".join(record["quality_flags"])  # type: ignore[arg-type]
+                presenter.show(
+                    ActionResult(
+                        status=ActionStatus.SUCCESS,
+                        message=f"{record['sample_id']} kaydedildi "
+                        f"({record['duration_s']} sn, {flags})",
+                    )
+                )
+                again = input("[Enter: sonraki · t: tekrar al] ").strip().lower()
+                if again not in {"t", "tekrar"}:
+                    break
+    except (EOFError, KeyboardInterrupt):
+        print()
+    finally:
+        capture.close()
+    presenter.status(f"oturum bitti — {done} kayıt eklendi")
+    print(json.dumps(session.summary(sentences), ensure_ascii=False, indent=2))
+    return 0
+
+
+def run_verify(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
+    """İnsan kontrolü turu: hedef metin ile gerçekten söylenen karşılaştırılır."""
+    from voice_assistant.services.recording import (
+        drop_sample,
+        mark_verified,
+        read_wav_pcm16,
+        update_transcript,
+    )
+
+    if not args.manifest.exists():
+        presenter.show(
+            ActionResult(
+                status=ActionStatus.ERROR,
+                message=f"Manifest yok: {args.manifest}",
+                error_code="E_VALIDATION",
+            )
+        )
+        return 1
+    records = [
+        json.loads(line)
+        for line in args.manifest.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+    play = None
+    if not args.no_audio:
+        try:
+            import sounddevice as sd
+
+            play = sd.play
+        except ImportError:
+            presenter.status("sounddevice yok — ses çalmadan, yalnızca metinle doğrulama")
+
+    presenter.status(f"{len(records)} kayıt — Enter: doğru · d: düzelt · r: reddet · ç: çık")
+    checked = 0
+    for i, rec in enumerate(records, 1):
+        path = Path(str(rec["audio_path"]))
+        print(f"\n[{i}/{len(records)}] {rec['sample_id']}  ({rec['duration_s']} sn)")
+        print(f"  hedef: {rec['transcript']}")
+        if play is not None and path.exists():
+            try:
+                samples, rate = read_wav_pcm16(path)
+                play(samples, rate)
+            except Exception as exc:  # noqa: BLE001 - çalma hatası doğrulamayı durdurmaz
+                print(f"  (ses çalınamadı: {exc})")
+        elif not path.exists():
+            print(f"  (ses dosyası yok: {path})")
+        try:
+            cmd = input("[Enter/d/r/ç] ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if cmd in {"ç", "c", "q"}:
+            break
+        sidecar = args.sidecar or (path.parent / f"session_{rec['sample_id'].split('_')[1]}.csv")
+        if cmd in {"r", "reddet"}:
+            drop_sample(args.manifest, str(rec["sample_id"]))
+            print("  reddedildi, ses silindi")
+            continue
+        if cmd in {"d", "düzelt", "duzelt"}:
+            text = input("  gerçekten söylenen: ").strip()
+            if text:
+                update_transcript(args.manifest, str(rec["sample_id"]), text)
+                print("  transkript güncellendi")
+        mark_verified(sidecar, str(rec["sample_id"]))
+        checked += 1
+    presenter.status(f"doğrulanan kayıt: {checked}")
+    return 0
+
+
 def run_info(container, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
     c = container
     print(f"voxflow {__version__}")
@@ -192,14 +370,22 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             print(f"[uyarı] {w}", file=sys.stderr)
 
-    if args.text:
-        return run_text(container, args.text, presenter)
-    if args.command == "chat" or args.command is None:
-        return run_chat(container, presenter)
-    if args.command == "listen":
-        return run_listen(container, presenter)
-    if args.command == "info":
-        return run_info(container, presenter)
+    try:
+        if args.text:
+            return run_text(container, args.text, presenter)
+        if args.command == "chat" or args.command is None:
+            return run_chat(container, presenter)
+        if args.command == "listen":
+            return run_listen(container, presenter)
+        if args.command == "info":
+            return run_info(container, presenter)
+        if args.command == "record":
+            return run_record(args, presenter)
+        if args.command == "verify":
+            return run_verify(args, presenter)
+    except VoxFlowError as exc:  # kullanıcıya traceback değil, anlaşılır hata
+        print(f"[✖ hata ({exc.code})] {exc.message}", file=sys.stderr)
+        return 2
     return 0
 
 

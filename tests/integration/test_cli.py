@@ -51,3 +51,79 @@ def test_cli_info(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
     )
     out = capsys.readouterr().out
     assert "rule_based" in out and "mock" in out
+
+
+def test_cli_record_rejects_empty_consent(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
+    """Açık izin olmadan kayıt başlamaz; kullanıcıya traceback değil hata kodu gösterilir."""
+    rc = cli.main(
+        [
+            "--config",
+            "config/app.example.json",
+            "--data-dir",
+            str(tmp_path),
+            "record",
+            "--speaker",
+            "spk_01",
+            "--split",
+            "train",
+            "--consent",
+            "   ",
+            "--audio-root",
+            str(tmp_path / "audio"),
+            "--manifest",
+            str(tmp_path / "m.jsonl"),
+        ]
+    )
+    err = capsys.readouterr().err
+    assert rc == 2
+    assert "E_VALIDATION" in err and "izin" in err
+    assert not (tmp_path / "m.jsonl").exists()
+
+
+def test_cli_record_summary_and_skip(tmp_path, capsys, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """Mikrofon açılmadan: cümleler atlanır, özet basılır, hiçbir ses yazılmaz."""
+    answers = iter(["a", "ç"])
+    monkeypatch.setattr("builtins.input", lambda *a: next(answers))
+    sentences = tmp_path / "s.md"
+    sentences.write_text("- C001: görev ekle\n- C002: not al\n", encoding="utf-8")
+    rc = cli.main(
+        [
+            "--config",
+            "config/app.example.json",
+            "--data-dir",
+            str(tmp_path),
+            "record",
+            "--speaker",
+            "spk_02",
+            "--split",
+            "val",
+            "--consent",
+            "team_consent_v1",
+            "--sentences",
+            str(sentences),
+            "--audio-root",
+            str(tmp_path / "audio"),
+            "--manifest",
+            str(tmp_path / "m.jsonl"),
+        ]
+    )
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert '"kaydedilen": 0' in out and '"toplam": 2' in out
+    assert not list((tmp_path / "audio").rglob("*.wav"))
+
+
+def test_cli_verify_missing_manifest(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
+    rc = cli.main(
+        [
+            "--config",
+            "config/app.example.json",
+            "--data-dir",
+            str(tmp_path),
+            "verify",
+            "--manifest",
+            str(tmp_path / "yok.jsonl"),
+        ]
+    )
+    assert rc == 1
+    assert "Manifest yok" in capsys.readouterr().out
