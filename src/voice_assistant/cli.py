@@ -195,15 +195,17 @@ def run_record(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-unt
         print(json.dumps(session.summary(sentences), ensure_ascii=False, indent=2))
         return 0
 
-    try:
-        from voice_assistant.adapters.audio.sounddevice_capture import SounddeviceCapture
+    # Mikrofon yalnızca gerçekten kayıt alınırken açılır: oturumu gözden geçirmek,
+    # cümle atlamak ve özeti görmek ses paketleri olmadan da çalışır.
+    capture: object | None = None
 
-        capture = SounddeviceCapture(session.sample_rate, 1, 60)
-    except AudioError as exc:
-        presenter.show(
-            ActionResult(status=ActionStatus.ERROR, message=exc.message, error_code=exc.code)
-        )
-        return 1
+    def get_capture():  # type: ignore[no-untyped-def]
+        nonlocal capture
+        if capture is None:
+            from voice_assistant.adapters.audio.sounddevice_capture import SounddeviceCapture
+
+            capture = SounddeviceCapture(session.sample_rate, 1, 60)
+        return capture
 
     presenter.status(
         f"{args.speaker}/{args.session} — {len(pending)} cümle, {args.split}. "
@@ -220,10 +222,11 @@ def run_record(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-unt
                 if cmd in {"a", "atla"}:
                     break
                 try:
-                    capture.start()
+                    mic = get_capture()
+                    mic.start()
                     presenter.status("kayıt alınıyor — bitirmek için Enter")
                     input()
-                    clip = capture.stop()
+                    clip = mic.stop()
                 except AudioError as exc:
                     presenter.show(
                         ActionResult(
@@ -248,7 +251,8 @@ def run_record(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-unt
     except (EOFError, KeyboardInterrupt):
         print()
     finally:
-        capture.close()
+        if capture is not None:
+            capture.close()
     presenter.status(f"oturum bitti — {done} kayıt eklendi")
     print(json.dumps(session.summary(sentences), ensure_ascii=False, indent=2))
     return 0

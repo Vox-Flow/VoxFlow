@@ -81,7 +81,7 @@ def test_cli_record_rejects_empty_consent(tmp_path, capsys) -> None:  # type: ig
 
 
 def test_cli_record_summary_and_skip(tmp_path, capsys, monkeypatch) -> None:  # type: ignore[no-untyped-def]
-    """Mikrofon açılmadan: cümleler atlanır, özet basılır, hiçbir ses yazılmaz."""
+    """Ses paketleri kurulu olmasa bile: cümleler atlanır, özet basılır, ses yazılmaz."""
     answers = iter(["a", "ç"])
     monkeypatch.setattr("builtins.input", lambda *a: next(answers))
     sentences = tmp_path / "s.md"
