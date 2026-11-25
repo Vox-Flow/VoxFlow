@@ -11,6 +11,7 @@ from datetime import date
 from typing import Any
 
 import httpx
+import pytest
 
 from voice_assistant.adapters.nlu.fake import FakeInterpreter
 from voice_assistant.adapters.nlu.ollama_qwen import HybridInterpreter, OllamaInterpreter
@@ -266,6 +267,60 @@ def test_hybrid_interpreter_falls_back_to_ollama_when_rule_unknown():
     assert res.intent == Intent.CREATE_TASK
     assert res.parameters["title"] == "annemi ara"
     assert res.parameters["date"] == "2026-10-23"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "evet",
+        "hayır",
+        "tamam",
+        "evet tamam",
+        "olur",
+        "",
+        "   ",
+        "hmm",
+        "ee",
+        "?!",
+        "x y",
+        "firefoks",
+    ],
+)
+def test_hybrid_keeps_ack_and_noise_in_rule_without_calling_llm(text: str) -> None:
+    """#34: onay/ret/anlamsız girdi kuralda kalır; LLM `affirm` uydurmamalı."""
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(
+            200, json={"message": {"content": json.dumps({"intent": "affirm", "parameters": {}})}}
+        )
+
+    ollama, _ = make_ollama(handler)
+    hybrid = HybridInterpreter(rule_based=RuleBasedInterpreter(), ollama=ollama)
+
+    res = hybrid.interpret(text, DialogueState())
+    assert res.intent == Intent.UNKNOWN
+    assert calls == 0
+
+
+def test_hybrid_still_calls_llm_for_command_like_free_text() -> None:
+    calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        return httpx.Response(
+            200,
+            json={"message": {"content": json.dumps({"intent": "create_note", "parameters": {}})}},
+        )
+
+    ollama, _ = make_ollama(handler)
+    hybrid = HybridInterpreter(rule_based=RuleBasedInterpreter(), ollama=ollama)
+
+    hybrid.interpret("yarın sabah toplantı için bir şeyler kaydet", DialogueState())
+    assert calls == 1
 
 
 def test_hybrid_is_available_without_rule_based_method() -> None:
