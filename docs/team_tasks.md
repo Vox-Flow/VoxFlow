@@ -2,12 +2,14 @@
 
 Roller: **H** Helin (entegrasyon lideri), **İ** İremsu (ses/ASR), **M** Melike (veri/test/CLI). Her iş: sorumlu / destekçi / kabul kriteri / bağımlılık / test / çıktı. Her PR'ı başka bir üye gözden geçirir.
 
+Haftalık rapor ve sunum iskeletleri: `docs/weekly/`.
+
 ## Sprint 1 (1–14 Kasım 2026) — kanban: https://github.com/orgs/Vox-Flow/projects/3
 | Issue | İş | Sahip | Durum (2026-11-01) |
 |---|---|---|---|
 | #1 | Mikrofon kaydı doğrulaması | İremsu | başlanmadı |
 | #2 | faster-whisper base, çevrimdışı | İremsu | başlanmadı |
-| #17 | İzin formu, kayıt protokolü, konuşmacı planı | İremsu | başlanmadı; komut listesi nlu_dev_v1'den türetilecek |
+| #17 | İzin formu, kayıt protokolü, konuşmacı planı | İremsu | ✅ PR #24; kayıt aracı hazır (4 Kas) → pilot kayıt sırada |
 | #5 | OllamaInterpreter + hybrid | Helin | başlanmadı; model adayları: qwen3:4b-instruct-2507 (varsayılan), qwen3:8b (6 GB VRAM'de dene) |
 | #21 | Kurallı yorumlayıcıdaki 5 hata | Helin | açık |
 | #6 | NLU test manifesti v1 | Melike | PR #20 |

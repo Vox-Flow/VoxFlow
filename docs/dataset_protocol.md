@@ -43,8 +43,8 @@ Ekip incelemesi ve katılımcı izinleri henüz alınmadı; gerçek toplama baş
    eşlemesi ve imzalar repo dışında, seslerden ayrı, erişimi sınırlı tutulur.
 2. Veri toplama, uygulamanın ham sesi saklamayan normal `listen` akışından ayrı
    ve açık izinli bir araştırma oturumudur. Mevcut CLI'nin kalıcı veri seti
-   kaydı yaptığı varsayılmaz; kayıt aracı ve mikrofon denemesi sonraki iştir.
-   Bu görevde mikrofon açılmaz, model indirilmez veya eğitim başlatılmaz.
+   kaydı yaptığı varsayılmaz. Veri toplama için ayrı komut vardır:
+   `voxflow record` (aşağıya bakın); `listen` akışı veri seti kaydı için kullanılmaz.
 3. Gelecekte kullanılacak araç ekipçe doğrulandıktan sonra PCM 16-bit WAV,
    16 kHz, tek kanal hedeflenir. Cihaz farklı hızda kaydediyorsa kontrollü
    yeniden örnekleme yapılır; örnekleme hızını yalnızca etiket değiştirmek yasaktır.
@@ -56,7 +56,8 @@ Ekip incelemesi ve katılımcı izinleri henüz alınmadı; gerçek toplama baş
    hata varsa tekrar alınır, katılımcıya baskı yapılmaz, her 25 cümlede mola verilir.
    İsteğe bağlı hafif ortam gürültüsü tekrarları ayrı etiketlenir; hedef sayıya
    yeni konuşmacı veya yeni cümle gibi eklenmez. Gürültü zorunlu değildir.
-6. Adlandırma: `spk_01_s01_C001_t01.wav` (yalnızca şablon; gerçek ses değildir).
+6. Adlandırma: `spk_01_s01_C001_t01.wav` — bu adlandırmayı ve manifest satırını
+   `voxflow record` otomatik üretir (bkz. aşağıdaki "Kayıt aracı").
    Konuşmacı/oturum/cümle/tekrar kimliği `sample_id` içinde korunur; tekrarlar
    aynı konuşmacı ayrımında kalır. Dosya adına isim, yaş veya iletişim yazılmaz.
 
@@ -102,3 +103,38 @@ Ekip incelemesi ve katılımcı izinleri henüz alınmadı; gerçek toplama baş
   formdaki plana göre ele alınır. Teslim + 3 ay sınırında ham veriler, bireysel
   transkriptler, kod eşlemeleri ve izin belgeleri silinir; yalnızca toplu metrikler
   kalır. Silme takibi kimlik içermeyen işlem kaydıyla belgelenir.
+
+## Kayıt aracı (`voxflow record` / `voxflow verify`)
+
+Kurulum: `uv sync --extra dev --extra audio`. Araç model indirmez, ASR çalıştırmaz.
+
+```bash
+uv run --extra audio voxflow record \
+  --speaker spk_01 --session s01 --split train \
+  --consent team_consent_v1 --environment quiet \
+  --device-note "dahili mikrofon" --limit 25
+```
+- Cümleleri `docs/recording_sentences_tr.md` dosyasından sırayla gösterir; Enter ile kaydeder,
+  Enter ile bitirir. `t` aynı cümleyi yeniden alır, `a` atlar, `ç` oturumu bitirir.
+- Ses `datasets/audio/<spk>/` altına **16 kHz mono PCM-16 WAV** olarak yazılır (git dışı).
+- Her kayıt için ASR manifestine (`datasets/manifests/asr_<spk>_real.jsonl`, git dışı) şemadaki
+  **10 alan** yazılır. Cümle kimliği, tekrar numarası, ortam, cihaz ve kontrol durumu
+  manifeste değil, protokolün istediği gibi ayrı yerel çizelgeye
+  (`datasets/audio/<spk>/session_<id>.csv`) yazılır.
+- `--consent` zorunludur ve boş bırakılamaz; açık izin alınmadan kayıt başlamaz. Alanın dolu
+  olması tek başına izin kanıtı değildir (bkz. `docs/consent_form_tr.md`).
+- `quality_flags` otomatik: kırpılma oranı > %0.1 ise `clipping`, `--environment noisy` ise
+  `noise`, aksi hâlde `ok`. `ok` başka bayrakla birlikte yazılmaz.
+- Oturum kaldığı yerden devam eder: manifestte kaydı olan cümleler atlanır.
+- Çok kısa (< 0.3 sn) ve sessiz kayıtlar hata verir, dosyaya yazılmaz.
+
+Doğrulama turu (insan kontrolü — transkript, listenin kopyası değil gerçekten söylenendir):
+```bash
+uv run --extra audio voxflow verify --manifest datasets/manifests/asr_spk_01_real.jsonl
+```
+Her kaydı çalar, hedef metni gösterir: `Enter` doğru, `d` düzelt (gerçekten söyleneni yaz),
+`r` reddet (manifestten çıkarır ve sesi siler), `ç` çık. Onaylananlar çizelgede
+`verified=yes` olarak işaretlenir. Ses çalma yoksa `--no-audio` ile metin üzerinden yürütülür.
+
+Toplama sonrası tüm manifestler birlikte denetlenir (şema, kimlik, dosya, konuşmacı sızıntısı):
+`uv run python experiments/asr/validate_manifest.py datasets/manifests/asr_*_real.jsonl --check-files`
