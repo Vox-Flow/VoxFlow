@@ -51,3 +51,16 @@ Her karar: bağlam, alternatifler, karar, etkiler, geri dönüş planı. Tarihle
 - **Gerekçe:** Kural anında ve belirleyici; LLM yalnızca serbest söyleyişte değer katar; Ollama yoksa sistem çalışmaya devam eder; injection yüzeyi küçülür.
 - **Model seçimi (ölçüldü, 2026-11-01):** nlu_dev_v1'de qwen2.5 1.5b/3b, gemma3 4b, llama3.2 3b kıyaslandı (`experiments/reports/2026-11-01_nlu_ollama_model_bench.md`). Hiçbiri tek başına kurallıya (0.955) yetişmedi → hibrit doğrulandı. Varsayılan aday **qwen2.5:3b** (few-shot 0.879, 0.2 s); 6 GB VRAM makinede `qwen2.5:7b` denenecek. Gemma3 avantaj göstermedi.
 - **Qwen fine-tune:** yapılmaz; "ileriki çalışma" olarak rapora yazılır.
+- **Model lisansları (doğrulandı, 2026-11-05; indirilen model dosyalarından okundu):**
+  | Model | Lisans | Serbest mi |
+  |---|---|---|
+  | `qwen2.5:1.5b` | Apache 2.0 | evet |
+  | `qwen2.5:3b` | Qwen Research License | **hayır** — ticari kullanım ayrı izin ister |
+  | `gemma3:4b` | Gemma Terms of Use | **hayır** |
+  | `llama3.2:3b` | Llama 3.2 Community License | **hayır** |
+  | Whisper, faster-whisper, CTranslate2 | MIT | evet |
+
+  Ölçümlerde en iyi sonucu veren `qwen2.5:3b` serbest lisanslı değildir. Dönem projesi
+  kapsamında kullanımı uygundur; kısıtsız kullanım gerekirse Apache 2.0 lisanslı 1.5B
+  veya 7B sürümüne geçilmelidir. Gemma ve Llama yalnızca karşılaştırma amacıyla
+  çalıştırılmış, hiçbiri dağıtılmamıştır. Depo kodu MIT lisanslıdır (`LICENSE`).
