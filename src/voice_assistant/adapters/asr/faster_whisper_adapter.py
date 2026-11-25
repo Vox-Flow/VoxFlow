@@ -24,8 +24,12 @@ class FasterWhisperRecognizer:
         compute_type: str = "int8",
         download_root: str | None = None,
         local_files_only: bool = True,
+        initial_prompt: str | None = None,
     ) -> None:
         self.model_size = model_size
+        # Alan sözlüğü ipucu: Whisper çözümlemeyi bu kelimelere doğru yönlendirir
+        # (fine-tune değildir; "firefox", "youtube" gibi adlarda ve kısa komutlarda yardımcı olur).
+        self.initial_prompt = initial_prompt
         self.device = device
         self.compute_type = compute_type
         self._download_root = download_root
@@ -46,19 +50,44 @@ class FasterWhisperRecognizer:
             self._error = "faster-whisper kurulu değil: pip install 'voxflow[asr]'"
             return
         try:
-            self._model = WhisperModel(
-                self.model_size,
-                device=self.device,
-                compute_type=self.compute_type,
-                download_root=self._download_root,
-                local_files_only=self._local_only,
-            )
+            self._model = self._load_on(WhisperModel, self.device, self.compute_type)
+            self._warm_up()
         except Exception as exc:  # noqa: BLE001
+            if self.device != "cpu":
+                # GPU kütüphanesi eksik/bozuk (örn. libcublas bulunamadı): CPU'ya düş.
+                log.warning("GPU ile ASR başlatılamadı (%s); CPU'ya geçiliyor.", exc)
+                try:
+                    self.device, self.compute_type = "cpu", "int8"
+                    self._model = self._load_on(WhisperModel, "cpu", "int8")
+                    self._warm_up()
+                    return
+                except Exception as exc2:  # noqa: BLE001
+                    exc = exc2
+            self._model = None
             self._error = (
                 f"Whisper modeli yüklenemedi ({self.model_size}). "
                 "Model önceden indirilmemiş olabilir; "
                 f"bkz. docs/setup.md. Ayrıntı: {exc}"
             )
+
+    def _load_on(self, cls, device: str, compute_type: str):  # type: ignore[no-untyped-def]
+        return cls(
+            self.model_size,
+            device=device,
+            compute_type=compute_type,
+            download_root=self._download_root,
+            local_files_only=self._local_only,
+        )
+
+    def _warm_up(self) -> None:
+        """Kısa sessizlikle çalıştırıp CUDA çalışma zamanı hatalarını yüklemede yakalar."""
+        import numpy as np
+
+        assert self._model is not None
+        segments, _ = self._model.transcribe(
+            np.zeros(1600, dtype="float32"), language="tr", task="transcribe", beam_size=1
+        )
+        list(segments)
 
     def is_available(self) -> bool:
         self._load()
@@ -70,10 +99,21 @@ class FasterWhisperRecognizer:
             raise AsrUnavailableError(self._error or "ASR kullanılamıyor.")
         audio = clip.to_float32()
         t0 = time.perf_counter()
-        segments, info = self._model.transcribe(
-            audio, language="tr", task="transcribe", beam_size=5, vad_filter=True
-        )
-        text = " ".join(s.text.strip() for s in segments).strip()
+        try:
+            segments, info = self._model.transcribe(
+                audio,
+                language="tr",
+                task="transcribe",
+                beam_size=5,
+                vad_filter=True,
+                initial_prompt=self.initial_prompt,
+            )
+            text = " ".join(s.text.strip() for s in segments).strip()
+        except Exception as exc:  # noqa: BLE001 - CTranslate2/CUDA hataları çeşitli tiplerde
+            raise AsrUnavailableError(
+                f"Transkripsiyon başarısız ({type(exc).__name__}: {exc}). "
+                'GPU kütüphaneleri eksikse config/app.json içinde asr.device = "cpu" deneyin.'
+            ) from exc
         latency = time.perf_counter() - t0
         return Transcript(
             text=text,
@@ -85,5 +125,6 @@ class FasterWhisperRecognizer:
                 "language_probability": getattr(info, "language_probability", None),
                 "device": self.device,
                 "compute_type": self.compute_type,
+                "initial_prompt": bool(self.initial_prompt),
             },
         )

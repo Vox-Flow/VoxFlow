@@ -49,5 +49,5 @@ Her karar: bağlam, alternatifler, karar, etkiler, geri dönüş planı. Tarihle
 ## ADR-009 — NLU: Qwen eğitilmez, hibrit kullanılır (2026-10-20)
 - **Karar:** Qwen2.5 (Ollama, hazır) **fine-tune edilmez**; yalnızca yapılandırılmış JSON üreten isteğe bağlı IntentInterpreter adaptörüdür. Üç NLU modu: `rule_based` (varsayılan, bağımlılıksız), `ollama`, `hybrid` (önerilen: önce kural, `unknown` dönerse Qwen). Her çıktı `CommandValidator`'dan geçer.
 - **Gerekçe:** Kural anında ve belirleyici; LLM yalnızca serbest söyleyişte değer katar; Ollama yoksa sistem çalışmaya devam eder; injection yüzeyi küçülür.
-- **Model boyutu:** 1.5B/3B/7B aynı test kümesinde karşılaştırılarak seçilir (issue #13); ölçmeden karar yok.
+- **Model seçimi (ölçüldü, 2026-11-01):** nlu_dev_v1'de qwen2.5 1.5b/3b, gemma3 4b, llama3.2 3b kıyaslandı (`experiments/reports/2026-11-01_nlu_ollama_model_bench.md`). Hiçbiri tek başına kurallıya (0.955) yetişmedi → hibrit doğrulandı. Varsayılan aday **qwen2.5:3b** (few-shot 0.879, 0.2 s); 6 GB VRAM makinede `qwen2.5:7b` denenecek. Gemma3 avantaj göstermedi.
 - **Qwen fine-tune:** yapılmaz; "ileriki çalışma" olarak rapora yazılır.

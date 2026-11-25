@@ -1,26 +1,64 @@
-# Ses Kaydı Katılım ve Açık İzin Formu (taslak)
+# Ses Kaydı Katılım ve Açık İzin Formu — taslak v1
 
-**Proje:** VoxFlow — Türkçe sesli bilgisayar asistanı (Bilgisayar Mühendisliği Tasarım dersi, 61. Grup)
-**Sorumlu ekip:** Helin Mengüloğul, İremsu Pala, Melike Nesrin Zaman
+**Durum:** #17 için hazırlanmış, ekip incelemesi bekleyen boş formdur; alınmış izin değildir.
+**Proje:** VoxFlow — Türkçe sesli bilgisayar asistanı, 61. Grup.
+**Sorumlu ekip:** Helin Mengüloğul, İremsu Pala, Melike Nesrin Zaman.
+**İletişim / silme talebi kanalı:** ____________________ (kayıttan önce doldurulacak).
+**Form sürümü ve tarih:** v1 / ____________________
 
-## Ne kaydedilecek?
-Size verilecek listeden kısa Türkçe komut cümleleri ("yarın için matematik ödevi görevi ekle" gibi). Yaklaşık 100 cümle, toplam 10–15 dakika. Kişisel bilgi içeren hiçbir şey söylemeniz istenmez.
+## Katılım
 
-## Veriler nasıl kullanılacak?
-- Yalnızca bu dönem projesinde, hazır bir konuşma tanıma modelinin (Whisper) uyarlanması ve değerlendirilmesi için.
-- Kayıtlar **anonim konuşmacı kimliği** ile (`spk_07` gibi) saklanır; adınız kayıtlarla eşleştirilmez.
-- Kayıtlar ekip üyelerinin bilgisayarlarında tutulur; **GitHub'a veya herkese açık bir yere yüklenmez**.
-- [ ] *(İşaretlenirse)* Eğitim için ücretsiz bulut GPU (Google Colab/Kaggle) kullanılabilir; bu durumda anonim kayıtlar geçici olarak bu hizmetlere yüklenir ve eğitim sonunda silinir.
-- Rapor ve sunumda yalnızca toplu istatistikler (WER, konuşmacı sayısı, süre) yer alır.
+18 yaş ve üzeri gönüllülerden [cümle listesindeki](recording_sentences_tr.md)
+100 kısa Türkçe ifadeyi okumaları istenir. Oturum molalar ve tekrarlarla yaklaşık
+15–25 dakika planlanır; süre ölçülmüş değildir. Katılım isteğe bağlıdır;
+reddetmenin veya yarıda bırakmanın olumsuz sonucu yoktur. İstenmeyen cümle
+atlanabilir. Gerçek ad, adres, telefon veya başka kişisel bilgi söylemeyin.
 
-## Haklarınız
-- İstediğiniz an, gerekçe göstermeden kayıtlarınızın silinmesini isteyebilirsiniz (ekipten birine yazmanız yeterli).
-- Katılım gönüllüdür; katılmamanın hiçbir sonucu yoktur.
-- Dönem sonunda (proje teslimi + 3 ay) tüm ham kayıtlar silinir; yalnızca anonim metrikler kalır.
+## Amaç ve saklama
 
-## Onay
-Yukarıdakileri okudum ve anladım. Sesimin yukarıdaki koşullarla kaydedilip kullanılmasına izin veriyorum.
+Ses ve insan tarafından kontrol edilen transkriptler yalnızca bu dönem projesinde
+Whisper konuşma tanıma modelini uyarlamak ve değerlendirmek için kullanılacaktır.
+Ses kişiyi tanınabilir kılabilir; `spk_01` gibi kod kullanımı tam anonimlik sağlamaz.
+İmzalı form ve kod eşlemesi, seslerden ayrı ve erişimi yalnızca sorumlu ekiple
+sınırlı yerel bir alanda saklanır. Adınız dosya adlarına veya manifestlere yazılmaz.
 
-Ad Soyad: ______________________   Tarih: ____________   İmza: ______________
+Kayıtlar, transkriptler, imzalar ve eşleme GitHub'a veya herkese açık bir ortama
+konmaz. Raporlarda yalnızca toplu ölçümler bulunur; ses örneği yayımlama izni bu
+forma dahil değildir. Yerel kopyalar ve yedekler proje tesliminden en geç üç ay
+sonra silinir. Kesin son silme tarihi: ____________________ (kayıttan önce doldurulur).
 
-Anonim ID (ekip doldurur): spk_____   Kayıt ortamı: ☐ sessiz oda ☐ gürültülü   Mikrofon: ______________
+## Geri çekilme
+
+İstediğiniz an yukarıdaki kanaldan konuşmacı kodunuzla silme talep edebilirsiniz.
+Ekip ilgili sesleri, transkriptleri, manifest satırlarını ve yedeklerini siler;
+isteği ve tamamlanmasını ayrı erişim kontrollü kayıtta izler. Veriler eğitimde
+kullanılmışsa etkilenen model kontrol noktaları da silinir veya kalan verilerle
+model yeniden oluşturulur; ses silmenin tek başına model etkisini kaldırdığı
+iddia edilmez. Tamamen toplulaştırılmış rapor istatistiklerinden tekil katkıyı
+ayırmak mümkün olmayabilir. Bu sınırlama kayıt öncesinde açıklanır.
+
+## Ayrı ve isteğe bağlı bulut izni — varsayılan kapalı
+
+Yerel katılım bulut iznine bağlı değildir. Sağlayıcı, hesap erişimi, aktarılacak
+veriler, saklama koşulları ve silme yöntemi açıklanmadan buluta aktarım yapılamaz.
+Sağlayıcının yedeklerinden derhal silme garantisi verilmez.
+
+Sağlayıcı / amaç / veri / saklama ve silme koşulları: ____________________
+
+- [ ] Açıklanan koşullarla buluta aktarılmasına ayrıca izin veriyorum.
+- [ ] Buluta aktarılmasına izin vermiyorum (boş bırakılırsa da izin yoktur).
+
+Bu alan doldurulmamışsa veya koşullar değişirse bulut aktarımı için yeni izin gerekir.
+
+## Katılımcı beyanı
+
+- [ ] 18 yaş veya üzerindeyim; açıklamayı okudum, sorularımı sordum.
+- [ ] Sesimin belirtilen yerel araştırma amacıyla kaydedilmesine ve kullanılmasına izin veriyorum.
+
+Ad Soyad: ____________________ Tarih: __________ İmza: ____________________
+
+Konuşmacı kodu: __________ Formu açıklayan ekip üyesi: ____________________
+
+Katılımcıya formun bir kopyası ve kodu verilir. Zorunlu alanlar tamamlanmadan ve
+katılım izni işaretlenmeden kayıt yapılmaz. Bu taslak hukuki uygunluk veya ekip
+onayı beyanı değildir; kayıt öncesi kurum gereklilikleri ekipçe doğrulanmalıdır.

@@ -16,6 +16,9 @@ log = logging.getLogger("voxflow.audio")
 
 
 class SounddeviceCapture:
+    MIN_SECONDS = 0.3  # daha kısası "boş kayıt" sayılır (Enter'a hemen basılması)
+    CLIP_LEVEL = 0.99  # bu seviyeyi aşan örnek oranı kırpılma uyarısı tetikler
+
     def __init__(self, sample_rate: int = 16000, channels: int = 1, max_seconds: int = 60) -> None:
         try:
             import numpy as np
@@ -76,9 +79,21 @@ class SounddeviceCapture:
         if audio.ndim > 1:
             audio = audio.mean(axis=1)
         audio = audio.astype("float32")
+        duration = len(audio) / self.sample_rate
+        if duration < self.MIN_SECONDS:
+            raise AudioError(
+                f"Kayıt çok kısa ({duration:.2f} sn). "
+                "Enter'a bastıktan sonra konuşup tekrar Enter'a basın."
+            )
         rms = float(self._np.sqrt(self._np.mean(audio**2))) if len(audio) else 0.0
         if rms < 1e-4:
             raise AudioError("Kayıt sessiz görünüyor (RMS çok düşük). Mikrofon kapalı olabilir.")
+        clipped = float(self._np.mean(self._np.abs(audio) >= self.CLIP_LEVEL))
+        if clipped > 0.001:
+            log.warning(
+                "Kayıtta kırpılma: örneklerin %%%.1f'i tam ölçekte. Mikrofon kazancını düşürün.",
+                100 * clipped,
+            )
         if self._overflow:
             log.warning("Kayıt sırasında tampon taşması bildirildi; kalite düşmüş olabilir.")
         return PcmClip(samples=audio, sample_rate=self.sample_rate)
