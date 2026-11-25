@@ -130,3 +130,60 @@ def test_prompt_injection_text_is_just_text(interpreter):  # type: ignore[no-unt
     )
     assert r.intent == Intent.CREATE_NOTE
     assert r.parameters["content"].startswith("ignore previous")
+
+
+# --- ASR hata toleransı (#30) -------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "text, intent",
+    [
+        ("görevleri listela", Intent.LIST_TASKS),  # gerçek Whisper çıktısı
+        ("görevleri listele", Intent.LIST_TASKS),
+        ("gorevleri listele", Intent.LIST_TASKS),  # ö -> o
+        ("görevleri göstr", Intent.LIST_TASKS),
+        ("geçmişi temizlr", Intent.CLEAR_HISTORY),
+        ("yeni görev oluştr", Intent.CREATE_TASK),
+        ("görevleri göst", Intent.UNKNOWN),  # 5 harften kısa sözcük düzeltilmez
+    ],
+)
+def test_asr_one_letter_tolerance(interpreter, text, intent):  # type: ignore[no-untyped-def]
+    res = interpreter.interpret(text, DialogueState())
+    assert res.intent == intent
+
+
+def test_tolerance_matches_allowlist_alias(interpreter):  # type: ignore[no-untyped-def]
+    res = interpreter.interpret("youtubee aç", DialogueState())
+    assert res.intent == Intent.OPEN_WEBSITE
+    assert res.parameters == {"site": "youtube"}
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "görevleri lstelemk",  # 2+ harf fark: tolerans kapsamı dışı
+        "bugün çok yoruldum",
+        "kitapları listele",  # ilgisiz sözcük komuta çevrilmez
+        "listela",  # tek başına, komut kalıbı yok
+    ],
+)
+def test_tolerance_does_not_invent_commands(interpreter, text):  # type: ignore[no-untyped-def]
+    res = interpreter.interpret(text, DialogueState())
+    assert res.intent not in (Intent.LIST_TASKS, Intent.CLEAR_HISTORY, Intent.SHOW_HISTORY)
+
+
+def test_tolerance_keeps_exact_input_untouched(interpreter):  # type: ignore[no-untyped-def]
+    res = interpreter.interpret("görev ekle: görevleri listela", DialogueState())
+    assert res.intent == Intent.CREATE_TASK
+    assert res.parameters["title"] == "görevleri listela"
+
+
+def test_within_one_edit():
+    from voice_assistant.services.text_utils import within_one_edit
+
+    assert within_one_edit("listela", "listele")
+    assert within_one_edit("liste", "listele") is False
+    assert within_one_edit("listel", "listele")
+    assert within_one_edit("listeele", "listele")
+    assert within_one_edit("abc", "abc")
+    assert within_one_edit("abc", "xyz") is False

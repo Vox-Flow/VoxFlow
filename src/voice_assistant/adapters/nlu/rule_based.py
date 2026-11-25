@@ -14,7 +14,7 @@ from datetime import date
 from voice_assistant.domain.dialogue import DialogueState
 from voice_assistant.domain.schemas import Intent, IntentResult
 from voice_assistant.services.dates import find_date
-from voice_assistant.services.text_utils import normalize
+from voice_assistant.services.text_utils import normalize, within_one_edit
 
 CANCEL_WORDS = ("iptal", "vazgeç", "vazgeçtim", "boşver", "boş ver", "kapat şunu", "unut")
 AFFIRM_WORDS = ("evet", "onaylıyorum", "onayla", "tamam", "olur", "kesinlikle", "sil gitsin")
@@ -65,6 +65,18 @@ _OPEN_RE = re.compile(
 )
 _OPEN_PREFIX_RE = re.compile(r"^(?:aç|başlat)\s+(?P<target>.+)$")
 
+# ASR hata toleransı (#30): komut anahtar sözcüklerinde 1 harflik farka izin verilir.
+# Yalnızca `unknown` çıkan girdilerde ikinci geçişte uygulanır; böylece tam eşleşen girdilerin
+# sonucu değişmez ve görev başlığı / not içeriği gibi serbest metne dokunulmaz.
+TOLERANT_MIN_LEN = 5
+COMMAND_VOCAB: frozenset[str] = frozenset(
+    {
+        "listele", "göster", "görevleri", "görevlerimi", "görevlerim", "görevler", "oluştur",
+        "kaydet", "hatırlat", "geçmişi", "geçmişimi", "temizle", "kaldır", "başlat",
+        "çalıştır", "yapılacaklar", "iptal", "vazgeç", "vazgeçtim", "boşver",
+    }
+)  # fmt: skip
+
 TASK_FILLER_WORDS = ("görevi", "görevini", "diye", "adında", "adlı", "için", "başlıklı")
 
 
@@ -87,8 +99,38 @@ class RuleBasedInterpreter:
 
     # ------------------------------------------------------------------ public
     def interpret(self, text: str, state: DialogueState) -> IntentResult:
-        raw = text
         t = normalize(text)
+        res = self._interpret_normalized(text, t, state)
+        unresolved_target = any(k.startswith("requested_") for k in res.parameters)
+        if res.intent != Intent.UNKNOWN and not unresolved_target:
+            return res
+        # ASR tek harf hatası yaptıysa (ör. "görevleri listela", "youtubee aç") düzeltilmiş
+        # metinle yeniden dene. Düzeltme yalnızca tam çözülen bir sonuç verirse kabul edilir.
+        fixed = self._correct_tokens(t)
+        if fixed != t:
+            retry = self._interpret_normalized(text, fixed, state)
+            if retry.intent not in (Intent.UNKNOWN, Intent.UNSUPPORTED) and not any(
+                k.startswith("requested_") for k in retry.parameters
+            ):
+                return retry
+        return res
+
+    def _correct_tokens(self, t: str) -> str:
+        """Her sözcüğü, tek ve belirsiz olmayan komut/alias sözcüğüne 1 harf farkla eşler."""
+        vocab = set(COMMAND_VOCAB)
+        for aliases in (*self._apps.values(), *self._sites.values()):
+            vocab.update(a for a in aliases if " " not in a)
+        out = []
+        for tok in t.split():
+            if len(tok) >= TOLERANT_MIN_LEN and tok not in vocab:
+                cands = {v for v in vocab if len(v) >= TOLERANT_MIN_LEN and within_one_edit(tok, v)}
+                if len(cands) == 1:
+                    tok = next(iter(cands))
+            out.append(tok)
+        return " ".join(out)
+
+    def _interpret_normalized(self, text: str, t: str, state: DialogueState) -> IntentResult:
+        raw = text
         today: date = self._today()  # type: ignore[operator]
 
         if not t:
