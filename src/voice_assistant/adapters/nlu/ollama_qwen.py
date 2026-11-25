@@ -208,7 +208,13 @@ class HybridInterpreter:
         return f"hybrid({self._rule_based.name}+{self._ollama.name})"
 
     def is_available(self) -> bool:
-        return self._rule_based.is_available()
+        """Kurallı yorumlayıcı her zaman çalışır; hibrit de bu yüzden hazırdır.
+
+        `IntentInterpreter` protokolünde `is_available` zorunlu değildir, bu nedenle
+        tanımlamayan uyarlayıcılar hazır kabul edilir (ör. RuleBasedInterpreter).
+        """
+        check = getattr(self._rule_based, "is_available", None)
+        return bool(check()) if callable(check) else True
 
     def interpret(self, text: str, state: DialogueState) -> IntentResult:
         res = self._rule_based.interpret(text, state)

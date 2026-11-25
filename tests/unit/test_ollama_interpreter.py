@@ -266,3 +266,25 @@ def test_hybrid_interpreter_falls_back_to_ollama_when_rule_unknown():
     assert res.intent == Intent.CREATE_TASK
     assert res.parameters["title"] == "annemi ara"
     assert res.parameters["date"] == "2026-10-23"
+
+
+def test_hybrid_is_available_without_rule_based_method() -> None:
+    """RuleBasedInterpreter `is_available` tanımlamaz; hibrit yine de hazır olmalı."""
+    from voice_assistant.adapters.nlu.fake import FakeInterpreter
+    from voice_assistant.adapters.nlu.ollama_qwen import HybridInterpreter
+    from voice_assistant.adapters.nlu.rule_based import RuleBasedInterpreter
+
+    hybrid = HybridInterpreter(rule_based=RuleBasedInterpreter(), ollama=FakeInterpreter())
+    assert hybrid.is_available() is True
+
+
+def test_hybrid_is_available_respects_rule_based_method() -> None:
+    from voice_assistant.adapters.nlu.fake import FakeInterpreter
+    from voice_assistant.adapters.nlu.ollama_qwen import HybridInterpreter
+
+    class Unavailable(FakeInterpreter):
+        def is_available(self) -> bool:
+            return False
+
+    hybrid = HybridInterpreter(rule_based=Unavailable(), ollama=FakeInterpreter())
+    assert hybrid.is_available() is False
