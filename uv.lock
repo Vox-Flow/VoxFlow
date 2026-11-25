@@ -6411,6 +6411,7 @@ audio = [
     { name = "soundfile" },
 ]
 dev = [
+    { name = "httpx" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "ruff" },
@@ -6442,6 +6443,7 @@ requires-dist = [
     { name = "datasets", extras = ["audio"], marker = "extra == 'train'" },
     { name = "evaluate", marker = "extra == 'train'" },
     { name = "faster-whisper", marker = "extra == 'asr'", specifier = ">=1.0" },
+    { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27" },
     { name = "httpx", marker = "extra == 'ollama'", specifier = ">=0.27" },
     { name = "jiwer", marker = "extra == 'train'" },
     { name = "mypy", marker = "extra == 'typecheck'", specifier = ">=1.10" },

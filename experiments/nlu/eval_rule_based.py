@@ -57,16 +57,36 @@ def expected_slots(slots: dict) -> dict:  # type: ignore[type-arg]
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("manifest", type=Path)
-    ap.add_argument("--provider", default="rule_based", choices=["rule_based"])
+    ap.add_argument("--provider", default="rule_based", choices=["rule_based", "ollama", "hybrid"])
+    ap.add_argument("--model", default="qwen2.5:1.5b", help="Ollama model adı")
+    ap.add_argument("--ollama-url", default="http://127.0.0.1:11434", help="Ollama base URL")
     ap.add_argument("--json", action="store_true", help="sonucu JSON olarak yaz")
     args = ap.parse_args()
 
     apps, sites = load_apps(), load_sites()
-    interp = RuleBasedInterpreter(
+    rule_interp = RuleBasedInterpreter(
         {k: v.aliases for k, v in apps.items()},
         {k: v.aliases for k, v in sites.items()},
         today_provider=lambda: REFERENCE_TODAY,
     )
+    if args.provider == "rule_based":
+        interp = rule_interp
+    elif args.provider in ("ollama", "hybrid"):
+        from voice_assistant.adapters.nlu.ollama_qwen import HybridInterpreter, OllamaInterpreter
+
+        ollama_interp = OllamaInterpreter(
+            model=args.model,
+            base_url=args.ollama_url,
+            timeout_s=30.0,
+            allowed_apps=sorted(apps.keys()),
+            allowed_sites=sorted(sites.keys()),
+            fallback=rule_interp,
+            today_provider=lambda: REFERENCE_TODAY,
+        )
+        if args.provider == "hybrid":
+            interp = HybridInterpreter(rule_based=rule_interp, ollama=ollama_interp)
+        else:
+            interp = ollama_interp
 
     rows = [
         json.loads(line)
