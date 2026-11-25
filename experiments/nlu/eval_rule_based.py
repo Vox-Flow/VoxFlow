@@ -97,6 +97,8 @@ def main() -> int:
     fp: Counter[str] = Counter()
     fn: Counter[str] = Counter()
     correct = slot_ok = 0
+    llm_used = 0  # LLM yanıtı şemadan geçip kullanıldı
+    llm_called = 0  # LLM'e gerçekten soruldu (hibritte kural bilemediğinde)
     latencies: list[float] = []
     errors: list[dict] = []  # type: ignore[type-arg]
     for r in rows:
@@ -104,6 +106,14 @@ def main() -> int:
         t0 = time.perf_counter()
         res = interp.interpret(r["utterance"], st)
         latencies.append(time.perf_counter() - t0)
+        # Ollama yanıtı geçersizse (bozuk JSON, bilinmeyen niyet, şema hatası, bağlantı
+        # hatası) uyarlayıcı kurallıya düşer ve provider "rule_based" kalır.
+        if args.provider == "ollama":
+            llm_called += 1
+            llm_used += res.provider.startswith("ollama")
+        elif args.provider == "hybrid" and res.provider.startswith("ollama"):
+            llm_called += 1
+            llm_used += 1
         gold, pred = r["intent"], res.intent.value
         if gold == pred:
             correct += 1
@@ -142,10 +152,13 @@ def main() -> int:
     report = {
         "manifest": str(args.manifest),
         "provider": args.provider,
+        "model": args.model if args.provider in ("ollama", "hybrid") else None,
         "n": n,
         "intent_accuracy": round(correct / n, 4) if n else None,
         "macro_f1": round(sum(f1s) / len(f1s), 4) if f1s else None,
         "slot_exact_match": round(slot_ok / n, 4) if n else None,
+        "llm_called": llm_called,
+        "valid_llm_response": (round(llm_used / llm_called, 4) if llm_called else None),
         "mean_latency_ms": round(1000 * sum(latencies) / n, 3) if n else None,
         "errors": errors,
     }

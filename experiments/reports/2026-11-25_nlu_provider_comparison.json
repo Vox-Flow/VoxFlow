@@ -1,0 +1,54 @@
+{
+  "rule_based": {
+    "manifest": "datasets/manifests/nlu_dev_v1.jsonl",
+    "provider": "rule_based",
+    "model": null,
+    "n": 66,
+    "intent_accuracy": 1.0,
+    "macro_f1": 1.0,
+    "slot_exact_match": 1.0,
+    "llm_called": 0,
+    "valid_llm_response": null,
+    "mean_latency_ms": 0.112,
+    "error_count": 0
+  },
+  "ollama_3b": {
+    "manifest": "datasets/manifests/nlu_dev_v1.jsonl",
+    "provider": "ollama",
+    "model": "qwen2.5:3b",
+    "n": 66,
+    "intent_accuracy": 0.803,
+    "macro_f1": 0.8011,
+    "slot_exact_match": 0.5758,
+    "llm_called": 66,
+    "valid_llm_response": 0.9848,
+    "mean_latency_ms": 6433.824,
+    "error_count": 28
+  },
+  "ollama_1_5b": {
+    "manifest": "datasets/manifests/nlu_dev_v1.jsonl",
+    "provider": "ollama",
+    "model": "qwen2.5:1.5b",
+    "n": 66,
+    "intent_accuracy": 0.7273,
+    "macro_f1": 0.6218,
+    "slot_exact_match": 0.4697,
+    "llm_called": 66,
+    "valid_llm_response": 0.8636,
+    "mean_latency_ms": 2490.775,
+    "error_count": 35
+  },
+  "hybrid_3b": {
+    "manifest": "datasets/manifests/nlu_dev_v1.jsonl",
+    "provider": "hybrid",
+    "model": "qwen2.5:3b",
+    "n": 66,
+    "intent_accuracy": 0.9848,
+    "macro_f1": 0.9741,
+    "slot_exact_match": 0.9848,
+    "llm_called": 4,
+    "valid_llm_response": 1.0,
+    "mean_latency_ms": 473.255,
+    "error_count": 1
+  }
+}
