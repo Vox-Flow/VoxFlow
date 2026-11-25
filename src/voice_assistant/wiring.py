@@ -59,12 +59,41 @@ def build_interpreter(
     return rule
 
 
-def build_recognizer(cfg: AppConfig, warnings: list[str]) -> SpeechRecognizer:
+COMMAND_HINTS = (
+    "görev ekle",
+    "not al",
+    "görevleri listele",
+    "geçmişi göster",
+    "geçmişi sil",
+    "vazgeçtim",
+    "iptal et",
+    "evet",
+    "hayır",
+    "yarın",
+    "haftaya",
+)
+
+
+def build_asr_prompt(launcher: AllowlistLauncher) -> str:
+    """Whisper için alan sözlüğü: komut kalıpları + izinli uygulama/site takma adları."""
+    names: list[str] = []
+    for spec in list(launcher.apps.values()) + list(launcher.sites.values()):
+        names.extend(a for a in spec.aliases if a not in names)
+    return "VoxFlow sesli asistan komutları: " + ", ".join(COMMAND_HINTS + tuple(names)) + "."
+
+
+def build_recognizer(
+    cfg: AppConfig, warnings: list[str], launcher: AllowlistLauncher | None = None
+) -> SpeechRecognizer:
     if cfg.asr.provider == "faster_whisper":
         from voice_assistant.adapters.asr.faster_whisper_adapter import FasterWhisperRecognizer
 
-        rec = FasterWhisperRecognizer(cfg.asr.model_size, cfg.asr.device, cfg.asr.compute_type)
-        return rec
+        prompt = cfg.asr.initial_prompt
+        if prompt is None and launcher is not None:
+            prompt = build_asr_prompt(launcher)
+        return FasterWhisperRecognizer(
+            cfg.asr.model_size, cfg.asr.device, cfg.asr.compute_type, initial_prompt=prompt
+        )
     warnings.append("ASR sağlayıcı 'mock': sesli mod gerçek transkripsiyon yapmaz.")
     return MockRecognizer()
 
@@ -107,7 +136,7 @@ def build_container(
     return Container(
         config=cfg,
         assistant=assistant,
-        recognizer=build_recognizer(cfg, warnings),
+        recognizer=build_recognizer(cfg, warnings, launcher),
         tts=build_tts(cfg, warnings),
         launcher=launcher,
         store=store,

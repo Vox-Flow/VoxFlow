@@ -6,7 +6,7 @@ Bu depo 61. Grup dönem projesidir (Türkçe yerel sesli asistan). Ana mühendis
 
 ## Çalışmaya başlamadan
 - `docs/decisions.md` (ADR) ve `docs/team_tasks.md` oku; yapılmış işi yeniden yazma.
-- Hoca fine-tune kararı (ASR mi NLU mu) **hâlâ açık** ise: model indirme, eğitim, büyük dataset indirme yapma.
+- Fine-tune kararı verildi (ADR-008/009): ana izlek Whisper; Qwen eğitilmez. Yine de model/dataset indirme ve eğitim başlatma **ekip onayı** ister.
 - Kişisel veri (`config/*.json`, `history.json`, ses dosyaları) asla commit edilmez.
 
 ## Git akışı

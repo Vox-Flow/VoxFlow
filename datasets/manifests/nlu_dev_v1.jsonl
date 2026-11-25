@@ -1,0 +1,66 @@
+{"sample_id": "nlu_v1_001", "utterance": "görev ekle", "intent": "create_task", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_002", "utterance": "yeni bir görev oluştur", "intent": "create_task", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_003", "utterance": "yarın için matematik ödevi görevi ekle", "intent": "create_task", "slots": {"title": "matematik ödevi", "date_text": "yarın"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_004", "utterance": "cuma günü sunum hazırla diye görev ekle", "intent": "create_task", "slots": {"title": "sunum hazırla", "date_text": "cuma"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_005", "utterance": "görev ekle: kitap iade et", "intent": "create_task", "slots": {"title": "kitap iade et"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_006", "utterance": "20 kasım için proje raporu görevi ekle", "intent": "create_task", "slots": {"title": "proje raporu", "date_text": "20 kasım"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_007", "utterance": "bana haftaya pazartesi diş randevusu görevi ekle", "intent": "create_task", "slots": {"title": "diş randevusu", "date_text": "haftaya pazartesi"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_008", "utterance": "laboratuvar raporu adında görev oluştur", "intent": "create_task", "slots": {"title": "laboratuvar raporu"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_009", "utterance": "Fizik ödevi", "intent": "create_task", "slots": {"title": "Fizik ödevi"}, "dialogue_context": {"pending": "create_task.title"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_010", "utterance": "alışveriş listesi yarın", "intent": "create_task", "slots": {"title": "alışveriş listesi", "date_text": "yarın"}, "dialogue_context": {"pending": "create_task.title"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_011", "utterance": "not al", "intent": "create_note", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_012", "utterance": "bir not oluştur", "intent": "create_note", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_013", "utterance": "not al süt almayı unutma", "intent": "create_note", "slots": {"content": "süt almayı unutma"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_014", "utterance": "toplantı saat üçte diye not al", "intent": "create_note", "slots": {"content": "toplantı saat üçte"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_015", "utterance": "not ekle: wifi şifresi değişti", "intent": "create_note", "slots": {"content": "wifi şifresi değişti"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_016", "utterance": "hocanın mailini bekle şeklinde not tut", "intent": "create_note", "slots": {"content": "hocanın mailini bekle"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_017", "utterance": "yarın kütüphaneye git", "intent": "create_note", "slots": {"content": "yarın kütüphaneye git"}, "dialogue_context": {"pending": "create_note.content"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_018", "utterance": "görevleri listele", "intent": "list_tasks", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_019", "utterance": "görevlerim neler", "intent": "list_tasks", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_020", "utterance": "görevlerimi göster", "intent": "list_tasks", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_021", "utterance": "yarınki görevleri göster", "intent": "list_tasks", "slots": {"date_text": "yarın"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_022", "utterance": "hangi görevlerim var", "intent": "list_tasks", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_023", "utterance": "yapılacaklar listesini göster", "intent": "list_tasks", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_024", "utterance": "geçmişi göster", "intent": "show_history", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_025", "utterance": "son komutları listele", "intent": "show_history", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_026", "utterance": "geçmişimi aç", "intent": "show_history", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_027", "utterance": "geçmişi sil", "intent": "clear_history", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_028", "utterance": "geçmişi temizle", "intent": "clear_history", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_029", "utterance": "geçmişimi kaldır", "intent": "clear_history", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_030", "utterance": "firefox aç", "intent": "open_app", "slots": {"app": "firefox"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_031", "utterance": "tarayıcıyı başlat", "intent": "open_app", "slots": {"app": "firefox"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_032", "utterance": "hesap makinesini aç", "intent": "open_app", "slots": {"app": "hesap_makinesi"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_033", "utterance": "not defterini aç", "intent": "open_app", "slots": {"app": "metin_editoru"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_034", "utterance": "terminali aç", "intent": "open_app", "slots": {"app": "terminal"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_035", "utterance": "dosya yöneticisini çalıştır", "intent": "open_app", "slots": {"app": "dosya_yoneticisi"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_036", "utterance": "firefox", "intent": "open_app", "slots": {"app": "firefox"}, "dialogue_context": {"pending": "open_app.app"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_037", "utterance": "youtube'u aç", "intent": "open_website", "slots": {"site": "youtube"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_038", "utterance": "google aç", "intent": "open_website", "slots": {"site": "google"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_039", "utterance": "github sitesini aç", "intent": "open_website", "slots": {"site": "github"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_040", "utterance": "vikipedi sayfasını aç", "intent": "open_website", "slots": {"site": "wikipedia"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_041", "utterance": "okul sitesini aç", "intent": "open_website", "slots": {"site": "ekampus"}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_042", "utterance": "vazgeçtim", "intent": "cancel", "slots": {}, "dialogue_context": {"pending": "create_task.title"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_043", "utterance": "iptal et", "intent": "cancel", "slots": {}, "dialogue_context": {"pending": "create_note.content"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_044", "utterance": "boşver", "intent": "cancel", "slots": {}, "dialogue_context": {"pending_confirmation": "clear_history"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_045", "utterance": "iptal", "intent": "cancel", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_046", "utterance": "evet", "intent": "affirm", "slots": {}, "dialogue_context": {"pending_confirmation": "clear_history"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_047", "utterance": "onaylıyorum", "intent": "affirm", "slots": {}, "dialogue_context": {"pending_confirmation": "clear_history"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_048", "utterance": "hayır", "intent": "deny", "slots": {}, "dialogue_context": {"pending_confirmation": "clear_history"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_049", "utterance": "silme", "intent": "deny", "slots": {}, "dialogue_context": {"pending_confirmation": "clear_history"}, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_050", "utterance": "evet", "intent": "unknown", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_051", "utterance": "görevi sil", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_052", "utterance": "matematik görevini tamamla", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_053", "utterance": "notu düzenle", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_054", "utterance": "bilgisayarı kapat", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_055", "utterance": "hava durumu nasıl", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_056", "utterance": "müzik çal", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_057", "utterance": "anneme mesaj gönder", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_058", "utterance": "saat kaç", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_059", "utterance": "terminalde ls komutu çalıştır", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_060", "utterance": "klasör oluştur", "intent": "unsupported", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_061", "utterance": "asdf qwer zxcv", "intent": "unknown", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_062", "utterance": "", "intent": "unknown", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_063", "utterance": "bugün çok yorgunum", "intent": "unknown", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_064", "utterance": "ne yapabilirsin", "intent": "unknown", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_065", "utterance": "photoshop aç", "intent": "open_app", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}
+{"sample_id": "nlu_v1_066", "utterance": "instagram'ı aç", "intent": "open_website", "slots": {}, "dialogue_context": null, "split": "test", "source": "team_written"}

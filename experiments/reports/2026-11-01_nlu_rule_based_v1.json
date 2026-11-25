@@ -1,0 +1,45 @@
+{
+  "manifest": "datasets/manifests/nlu_dev_v1.jsonl",
+  "provider": "rule_based",
+  "n": 66,
+  "intent_accuracy": 0.9545,
+  "macro_f1": 0.9636,
+  "slot_exact_match": 0.9242,
+  "mean_latency_ms": 0.094,
+  "errors": [
+    {
+      "id": "nlu_v1_023",
+      "utterance": "yapılacaklar listesini göster",
+      "gold": "list_tasks",
+      "pred": "unknown"
+    },
+    {
+      "id": "nlu_v1_040",
+      "utterance": "vikipedi sayfasını aç",
+      "slots_gold": {
+        "site": "wikipedia"
+      },
+      "slots_pred": {}
+    },
+    {
+      "id": "nlu_v1_041",
+      "utterance": "okul sitesini aç",
+      "slots_gold": {
+        "site": "ekampus"
+      },
+      "slots_pred": {}
+    },
+    {
+      "id": "nlu_v1_059",
+      "utterance": "terminalde ls komutu çalıştır",
+      "gold": "unsupported",
+      "pred": "open_app"
+    },
+    {
+      "id": "nlu_v1_066",
+      "utterance": "instagram'ı aç",
+      "gold": "open_website",
+      "pred": "open_app"
+    }
+  ]
+}

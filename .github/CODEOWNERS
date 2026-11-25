@@ -1,13 +1,13 @@
-# Otomatik reviewer ataması. GitHub kullanıcı adlarını ekip oluşturulunca güncelleyin.
+# Otomatik reviewer ataması.
 # Sahibi dışındaki bir üye de PR'ı okur: herkes algoritmayı anlamalı.
-*                                   @HELIN_GH @IREMSU_GH @melikeZaman04
-src/voice_assistant/domain/         @HELIN_GH
-src/voice_assistant/services/       @HELIN_GH
-src/voice_assistant/adapters/nlu/   @HELIN_GH
-src/voice_assistant/adapters/platforms/ @HELIN_GH
-src/voice_assistant/adapters/audio/ @IREMSU_GH
-src/voice_assistant/adapters/asr/   @IREMSU_GH
-experiments/asr/                    @IREMSU_GH
+*                                   @HelinMengulogul @iremsupalaa @melikeZaman04
+src/voice_assistant/domain/         @HelinMengulogul
+src/voice_assistant/services/       @HelinMengulogul
+src/voice_assistant/adapters/nlu/   @HelinMengulogul
+src/voice_assistant/adapters/platforms/ @HelinMengulogul
+src/voice_assistant/adapters/audio/ @iremsupalaa
+src/voice_assistant/adapters/asr/   @iremsupalaa
+experiments/asr/                    @iremsupalaa
 src/voice_assistant/cli.py          @melikeZaman04
 src/voice_assistant/adapters/storage/ @melikeZaman04
 tests/                              @melikeZaman04
