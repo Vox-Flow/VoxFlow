@@ -4,17 +4,37 @@ Roller: **H** Helin (entegrasyon lideri), **İ** İremsu (ses/ASR), **M** Melike
 
 Haftalık rapor ve sunum iskeletleri: `docs/weekly/`.
 
-## Sprint 1 (1–14 Kasım 2026) — kanban: https://github.com/orgs/Vox-Flow/projects/3
-| Issue | İş | Sahip | Durum (2026-11-01) |
-|---|---|---|---|
-| #1 | Mikrofon kaydı doğrulaması | İremsu | başlanmadı |
-| #2 | faster-whisper base, çevrimdışı | İremsu | başlanmadı |
-| #17 | İzin formu, kayıt protokolü, konuşmacı planı | İremsu | ✅ PR #24; kayıt aracı hazır (4 Kas) → pilot kayıt sırada |
-| #5 | OllamaInterpreter + hybrid | Helin | başlanmadı; model adayları: qwen3:4b-instruct-2507 (varsayılan), qwen3:8b (6 GB VRAM'de dene) |
-| #21 | Kurallı yorumlayıcıdaki 5 hata | Helin | açık |
-| #6 | NLU test manifesti v1 | Melike | PR #20 |
-| #13 | README/docs güncelleme | Melike | bu PR |
-| #11 | Uçtan uca değerlendirme protokolü | Melike | protokol + betik iskeleti (ses bekliyor) |
+## Güncel durum (26 Kasım 2026) — kanban: https://github.com/orgs/Vox-Flow/projects/3
+
+**Bitti:** Faz 1 (metin modu), Faz 2 altyapısı (mikrofon, Whisper, kayıt aracı),
+Faz 3 (hibrit NLU). `v0.1.0` yayımlandı. Açık PR yok.
+
+**Aktif işler**
+
+| Issue | İş | Sahip |
+|---|---|---|
+| #40 | Günlük: ortam kurulumu → Common Voice indirme → WER tabanı | İremsu |
+| #4 | WER/CER taban ölçümü (Common Voice TR test) | İremsu |
+| #8 | **Ana izlek:** Whisper uyarlaması | İremsu |
+| #36 | Günlük: GPU kurulumu ve gecikmenin yeniden ölçülmesi | Helin |
+| #12 | Windows/macOS platform doğrulaması | Helin |
+| #35 | Bağımsız yeni NLU test kümesi (nlu_test_v2) | Melike |
+
+**Bitirme adımları (sırada)**
+
+| Issue | İş | Sahip |
+|---|---|---|
+| #41 | Uçtan uca sesli değerlendirme (ASR çıktısıyla) | Melike |
+| #42 | Rapor: giriş, gereksinimler, veri, NLU sonuçları, sonuç, ekler | Melike |
+| #43 | Rapor: ilgili çalışmalar (NLU), mimari, hibrit, tartışma | Helin |
+| #44 | Rapor: ilgili çalışmalar (ASR), veri toplama, ASR ve uyarlama sonuçları | İremsu |
+| #45 | v1.0 sürüm teslimi ve etiket | Melike |
+
+**İkinci aşama (ana teslimin parçası değil):** #3 gönüllü ses kaydı, #17 izin formundaki
+iki ekip kararı. ADR-010 sonrası bunlar uyarlamayı bloke etmiyor.
+
+**Bağımlılık zinciri:** #40 → #4 → #8 → (#41, #44) → #45. Kritik yol İremsu'nun ortam
+kurulumundan geçiyor.
 
 ## Faz 1 — tamamlanan iskelet
 | # | İş | Sorumlu | Durum |
