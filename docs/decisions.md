@@ -46,6 +46,32 @@ Her karar: bağlam, alternatifler, karar, etkiler, geri dönüş planı. Tarihle
 - **Risk (açıkça):** Whisper Türkçeyi zaten iyi bilir; küçük veriyle genel WER'de büyük düşüş beklenmez. Kazanç alan sözcükleri (uygulama/site adları, komut kalıpları), kendi mikrofon/konuşmacılar ve kısa cümle halüsinasyonlarında aranır. Fark küçük çıkarsa da rapora yazılır.
 - **Geri dönüş:** Eğitim 4 GB'a sığmazsa `tiny` ya da LoRA; o da olmazsa Colab/Kaggle T4 — yalnızca izin formunda bulut işleme maddesi varsa.
 
+## ADR-010 — Uyarlama verisi: birincil Common Voice TR, ikincil kendi kayıtlarımız (2026-11-26)
+- **Bağlam:** ADR-008 uyarlamayı yalnızca ekibin toplayacağı kayıtlara bağlamıştı. Kayıt
+  aracı 4 Kasım'da hazır olmasına karşın 26 Kasım itibarıyla **sıfır kayıt** bulunmaktadır;
+  izin formundaki iki alan (silme kanalı, imha tarihi) süreci bloke etmektedir. Ders
+  sorumlusunun beklentisi, modelin hazır hâlde bırakılmayıp bir veri kümesiyle
+  uyarlanmasıdır; verinin kaynağı konusunda bağlayıcı bir kısıt bulunmamaktadır.
+- **Alternatifler:** (a) Yalnızca kendi kaydımızı beklemek — takvim riski yüksek, Faz 4
+  hiç başlamayabilir. (b) Yalnızca hazır küme — alan sözcükleri ("firefox aç",
+  "görevleri listele") öğrenilmez. (c) İkisi birden.
+- **Karar:** **(c).** Birincil uyarlama verisi **Mozilla Common Voice Türkçe** (CC0);
+  ikinci aşamada, toplanabilirse, kendi komut kayıtlarımız eklenir ve "genel veri + alan
+  verisi" olarak ayrı raporlanır.
+- **Gerekçe:** CC0 lisansı MIT depomuzla sorunsuzdur, konuşmacı kimliği içerdiği için
+  konuşmacı-ayrık bölme yapılabilir ve yayımlanmış çalışmalarla karşılaştırılabilir bir
+  referans sağlar (Whisper small Türkçe: ~%18 WER, uyarlama sonrası ~%12,9 bildirilmiştir).
+  Speech-MASSIVE alan olarak daha yakındır ancak CC-BY-NC-SA lisansındaki ShareAlike
+  maddesi, eğitilmiş modelin yayımlanması durumunda belirsizlik doğurduğu için birincil
+  kaynak olarak seçilmemiştir.
+- **Kapsam:** Tamamı değil, alt küme kullanılacaktır (eğitim ~2–3 saat, doğrulama ve test
+  ~0,5'er saat). Konuşmacı-ayrık bölme zorunludur ve `experiments/asr/validate_manifest.py`
+  ile denetlenir.
+- **Etkiler:** Faz 4 artık gönüllü kaydına bağlı değildir; veri toplama değerli ama
+  engelleyici olmaktan çıkmıştır. İzin formu eksikleri yine tamamlanmalıdır (#17).
+- **Geri dönüş:** Common Voice erişimi veya lisans koşulları beklenenden farklı çıkarsa
+  FLEURS Türkçe (CC-BY-4.0, 2,6 saat) alternatif olarak kullanılabilir.
+
 ## ADR-009 — NLU: Qwen eğitilmez, hibrit kullanılır (2026-10-20)
 - **Karar:** Qwen2.5 (Ollama, hazır) **fine-tune edilmez**; yalnızca yapılandırılmış JSON üreten isteğe bağlı IntentInterpreter adaptörüdür. Üç NLU modu: `rule_based` (varsayılan, bağımlılıksız), `ollama`, `hybrid` (önerilen: önce kural, `unknown` dönerse Qwen). Her çıktı `CommandValidator`'dan geçer.
 - **Gerekçe:** Kural anında ve belirleyici; LLM yalnızca serbest söyleyişte değer katar; Ollama yoksa sistem çalışmaya devam eder; injection yüzeyi küçülür.
