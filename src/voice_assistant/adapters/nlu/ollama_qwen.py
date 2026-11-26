@@ -20,6 +20,7 @@ from voice_assistant.domain.dialogue import DialogueState
 from voice_assistant.domain.schemas import Intent, IntentResult
 from voice_assistant.ports.protocols import IntentInterpreter
 from voice_assistant.services.dates import find_date
+from voice_assistant.services.text_utils import normalize
 
 log = logging.getLogger("voxflow.nlu.ollama")
 
@@ -196,8 +197,36 @@ class OllamaInterpreter:
             return self._fallback.interpret(raw, state)
 
 
+# Kısa onay/ret/dolgu ifadeleri: bekleyen onay yokken bunlar anlamsızdır ve kuralın
+# verdiği `unknown` doğru yanıttır. LLM'e gitmeleri `affirm`/`deny` yanlış pozitifi üretir.
+_ACK_WORDS = frozenset(
+    {
+        "evet", "hayır", "hayir", "tamam", "tamamdır", "olur", "olmaz", "yok", "var",
+        "peki", "he", "hı", "hıhı", "yoo", "yo", "belki", "kesinlikle", "istemiyorum",
+        "onaylıyorum", "onayla", "dur", "ya", "şey", "ee", "eee", "hmm", "ıı", "ııı",
+    }
+)  # fmt: skip
+_MIN_TOKENS_FOR_LLM = 2
+_MIN_LETTERS_FOR_LLM = 4
+
+
+def _is_llm_worthy(text: str) -> bool:
+    """Kural `unknown` dediğinde LLM'e sorulmaya değer mi? (#34)
+
+    `unknown` bir başarısızlık değil geçerli bir yanıttır. LLM yalnızca komut benzeri
+    ama kuralın çözemediği cümlelerde çağrılır. Kuralda kalanlar: boş/anlamsız girdi,
+    tek sözcüklük girdi ve yalnızca onay/ret/dolgu sözcüklerinden oluşan kısa ifadeler.
+    """
+    tokens = normalize(text).split()
+    if len(tokens) < _MIN_TOKENS_FOR_LLM:
+        return False
+    if all(tok in _ACK_WORDS for tok in tokens):
+        return False
+    return sum(ch.isalpha() for tok in tokens for ch in tok) >= _MIN_LETTERS_FOR_LLM
+
+
 class HybridInterpreter:
-    """Önce kurallı NLU, kural 'unknown' dönerse Ollama'yı çağıran hibrit yorumlayıcı."""
+    """Önce kurallı NLU; kural `unknown` dönerse ve girdi komut benzeriyse Ollama'yı çağırır."""
 
     def __init__(self, rule_based: IntentInterpreter, ollama: IntentInterpreter) -> None:
         self._rule_based = rule_based
@@ -218,6 +247,6 @@ class HybridInterpreter:
 
     def interpret(self, text: str, state: DialogueState) -> IntentResult:
         res = self._rule_based.interpret(text, state)
-        if res.intent == Intent.UNKNOWN:
+        if res.intent == Intent.UNKNOWN and _is_llm_worthy(text):
             return self._ollama.interpret(text, state)
         return res

@@ -18,6 +18,21 @@ def normalize(text: str) -> str:
     return _WS_RE.sub(" ", text).strip()
 
 
+def within_one_edit(a: str, b: str) -> bool:
+    """İki dize arasındaki Levenshtein uzaklığı en fazla 1 mi (ekleme/silme/değiştirme)?"""
+    if a == b:
+        return True
+    if abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) == len(b):
+        return sum(x != y for x, y in zip(a, b, strict=True)) == 1
+    short, long_ = (a, b) if len(a) < len(b) else (b, a)
+    i = 0
+    while i < len(short) and short[i] == long_[i]:
+        i += 1
+    return short[i:] == long_[i + 1 :]
+
+
 def strip_suffix_apostrophe(token: str) -> str:
     """\"youtube'u\" -> \"youtube\"."""
     return re.split(r"['’]", token, maxsplit=1)[0]

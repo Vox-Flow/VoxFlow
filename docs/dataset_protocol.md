@@ -20,6 +20,12 @@
 - NLU: aynı cümlenin birebir/çok yakın varyantları aynı split'te kalır (ezber avantajı yok).
 - Test kümesi dondurulur; baseline ve fine-tuned model **aynı** test kümesinde değerlendirilir.
 
+## Veri kaynağı (ADR-010)
+Uyarlamanın **birincil** kaynağı Mozilla Common Voice Türkçe'dir (CC0); alt küme
+kullanılır ve konuşmacı-ayrık bölünür. Aşağıdaki kendi kayıt protokolümüz **ikincil**
+aşamadır: toplanabilirse alan sözcüklerini (uygulama ve site adları, komut kalıpları)
+öğretmek için eklenir ve sonuç "genel veri + alan verisi" olarak ayrı raporlanır.
+
 ## Toplama hedefleri (öneri, ölçülmüş sayı değil)
 - NLU: ≥50 komut değerlendirme, ≥5 örnek/niyet, ≥10 unsupported/unknown.
 - ASR: ekip içi 3 konuşmacı × 20 kısa komut başlangıç; 16 kHz mono WAV, sessiz oda + 1 gürültülü set.

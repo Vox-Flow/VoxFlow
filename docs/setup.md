@@ -50,3 +50,36 @@ uv run python -c "from transformers import WhisperForConditionalGeneration as M,
   M.from_pretrained('openai/whisper-base'); P.from_pretrained('openai/whisper-base')"
 ```
 Sonrasında `train_whisper.py` `local_files_only=True` ile çalışır; çevrimdışı yeniden indirmeye kalkmaz.
+
+## Donanıma bağlı ölçümler ve makine devri
+
+Proje iki farklı makinede yürütülmektedir ve bazı sayılar makineye bağımlıdır. Hangi
+sonucun taşınabilir, hangisinin yeniden ölçülmesi gerektiği aşağıdadır.
+
+| Ölçüm | Donanıma bağlı mı | Not |
+|---|---|---|
+| Niyet doğruluğu, makro F1, slot tam eşleşme | Hayır | Makineden bağımsız, olduğu gibi kullanılabilir |
+| Geçerli LLM yanıtı oranı | Hayır | Model ve istem belirler |
+| WER / CER | Hayır | Model ve veri belirler |
+| **Gecikme (LLM ve ASR)** | **Evet** | Aşağıya bakınız |
+| Fine-tune yapılabilirliği | **Evet** | Ekran kartı belleğiyle sınırlı |
+
+**Ölçümlerin yapıldığı makine (Melike):** RTX 3050 Ti Laptop, 4 GB ekran kartı belleği,
+15 GB RAM. `cuBLAS 12` kurulu olmadığı için hem Whisper hem Ollama **işlemci üzerinde**
+çalışmaktadır. Bu nedenle 25 Kasım ölçümündeki 6,4 saniyelik LLM gecikmesi bu makineye
+özgüdür ve genel bir sonuç olarak sunulmamalıdır.
+
+**Model çalıştırma ve uyarlama makinesi (Helin):** 6 GB ekran kartı belleği, 64 GB RAM.
+Bu makinede yeniden ölçülmesi gerekenler:
+
+1. **LLM gecikmesi** — `uv run python experiments/nlu/eval_rule_based.py
+   datasets/manifests/nlu_dev_v1.jsonl --provider ollama --model qwen2.5:3b --json`.
+   Doğruluk değerleri aynı çıkmalı; yalnızca gecikme düşmelidir.
+2. **Whisper gecikmesi** — GPU için `uv pip install nvidia-cublas-cu12 nvidia-cudnn-cu12`
+   (yaklaşık 700 MB). Kurulu değilse uyarı verilip işlemciye düşülür.
+3. **Uyarlama (fine-tune)** — 6 GB bellekte `whisper-base` tam uyarlaması beklenmektedir;
+   `small` sınırdadır ve gerekirse LoRA ile yapılmalıdır. Konfigürasyon:
+   `experiments/asr/configs/whisper_base_ft.yaml`. Önce `--dry-run` ile doğrulayın.
+
+**Taşınmayan iş:** ses kaydı toplama güçlü makine gerektirmez; mikrofonu olan herhangi
+bir bilgisayarda `voxflow record` ile yapılabilir.

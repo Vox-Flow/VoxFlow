@@ -20,3 +20,6 @@
 | F: fine-tune hedefi ASR; NLU eğitilmez | ADR-008, ADR-009; `experiments/asr/train_whisper.py`; hibrit NLU planı | `train_whisper.py --dry-run`; `bench_ollama_quick.py` |
 | G: ASR/NLU manifest ayrımı, konuşmacı sızıntısı | `docs/dataset_protocol.md`, `experiments/asr/validate_manifest.py` | `test_speaker_leak_detected`, `test_missing_consent_is_error` |
 | G: izinli, anonim ses toplama | `docs/consent_form_tr.md` | manuel (ekip onayı, #17) |
+| Hibrit NLU: kural + yerel dil modeli | `adapters/nlu/ollama_qwen.py` (`OllamaInterpreter`, `HybridInterpreter`), ADR-009 | `test_ollama_interpreter.py`; `2026-11-25_nlu_provider_comparison.md` |
+| ASR hatalarına tolerans | `services/text_utils.within_one_edit`, `rule_based._correct_tokens` | `test_rule_based_nlu.py` |
+| Uyarlama verisi kaynağı | ADR-010 (Common Voice TR, CC0) | `experiments/asr/validate_manifest.py` konuşmacı sızıntısı denetimi |
