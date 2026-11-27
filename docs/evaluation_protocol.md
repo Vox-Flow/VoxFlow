@@ -12,7 +12,15 @@ Amaç: "sesli komut → doğru işlem" başarısını **üç ayrı katmanda** ö
 İşlem başarı oranı ≠ görev "tamamlandı" durumu. Birincisi sistemin doğru eylemi seçmesi, ikincisi kullanıcının görevini bitirmesidir; ikincisi ölçülmez.
 
 ## Veri
-- Metin kümesi: `datasets/manifests/nlu_dev_v1.jsonl` (66, dondurulmuş). Her satırda beklenen niyet, slot ve bağlam var.
+- **Geliştirme kümesi:** `datasets/manifests/nlu_dev_v1.jsonl` (66). Kural düzeltmeleri bu küme
+  üzerinde yapılır. #21'deki düzeltmeler bu kümenin hatalarından türetildiği için buradaki
+  sonuç **genelleme başarımı olarak raporlanamaz**.
+- **Tutulmuş test kümesi:** `datasets/manifests/nlu_test_v2.jsonl` (36, dondurulmuş). Düzeltmelerde
+  hiç kullanılmadı; yalnızca son ölçümde, tek seferde koşulur. Bu kümedeki hatalara bakarak kural
+  yazmak kümeyi geliştirme kümesine çevirir — gerekirse v3 yazılır.
+  Raporda verilecek sayı budur (2026-11-27 ölçümü: niyet doğruluğu 0,722).
+
+Her iki satırda beklenen niyet, slot ve bağlam vardır.
 - Ses kümesi: `datasets/manifests/asr_test.jsonl` (git dışı), konuşmacı-ayrık. Her ses kaydı bir metin örneğine `nlu_ref_id` ile bağlanır; böylece aynı cümle hem ASR hem NLU hem işlem katmanında ölçülür.
 - Beklenen işlem, niyetten türetilir: create_task → `store.add_task(title, date)`, open_app → `launcher.open_app(key)`, clear_history → onay turu + `store.clear_history()`, unsupported/unknown → **hiçbir** fonksiyon çağrılmaz, cancel → bekleyen işlem temizlenir.
 
