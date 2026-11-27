@@ -42,8 +42,12 @@ def _parser() -> argparse.ArgumentParser:
     )
     sub = p.add_subparsers(dest="command")
     sub.add_parser("chat", help="etkileşimli metin modu")
-    sub.add_parser("listen", help="Enter ile ses kaydı -> ASR -> komut")
+    lis = sub.add_parser("listen", help="Enter ile ses kaydı -> ASR -> komut")
+    lis.add_argument(
+        "--device", default=None, help="giriş aygıtı: indeks ya da ad parçası (voxflow devices)"
+    )
     sub.add_parser("info", help="ortam ve adaptör durumu")
+    sub.add_parser("devices", help="mikrofon (giriş) aygıtlarını listele")
 
     rec = sub.add_parser("record", help="veri toplama oturumu (gönüllü kaydı)")
     rec.add_argument("--speaker", required=True, help="anonim kod, örn. spk_01")
@@ -58,6 +62,9 @@ def _parser() -> argparse.ArgumentParser:
     rec.add_argument("--environment", default="quiet", choices=["quiet", "noisy"])
     rec.add_argument("--device-note", default="", help="mikrofon/cihaz türü (seri numarası yazma)")
     rec.add_argument("--limit", type=int, default=None, help="bu oturumda en fazla N cümle")
+    rec.add_argument(
+        "--device", default=None, help="giriş aygıtı: indeks ya da ad parçası (voxflow devices)"
+    )
 
     ver = sub.add_parser("verify", help="kayıtları dinleyip transkripti onayla/düzelt")
     ver.add_argument("--manifest", type=Path, required=True)
@@ -96,7 +103,7 @@ def run_chat(container, presenter: ConsolePresenter) -> int:  # type: ignore[no-
     return 0
 
 
-def run_listen(container, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
+def run_listen(container, presenter: ConsolePresenter, device: str | None = None) -> int:  # type: ignore[no-untyped-def]
     """Enter ile başlat / Enter ile bitir. Ham ses yalnızca bellekte tutulur."""
     rec = container.recognizer
     if not rec.is_available():
@@ -111,12 +118,14 @@ def run_listen(container, presenter: ConsolePresenter) -> int:  # type: ignore[n
         )
         return 1
     try:
+        from voice_assistant.adapters.audio.devices import resolve_device
         from voice_assistant.adapters.audio.sounddevice_capture import SounddeviceCapture
 
         capture = SounddeviceCapture(
             container.config.audio.sample_rate,
             container.config.audio.channels,
             container.config.audio.max_seconds,
+            device=resolve_device(device),
         )
     except AudioError as exc:
         presenter.show(
@@ -171,6 +180,27 @@ def run_listen(container, presenter: ConsolePresenter) -> int:  # type: ignore[n
     return 0
 
 
+def run_devices(presenter: ConsolePresenter) -> int:
+    """Giriş aygıtlarını listeler. Varsayılan '*' ile işaretlenir."""
+    from voice_assistant.adapters.audio.devices import list_input_devices
+
+    try:
+        devices = list_input_devices()
+    except AudioError as exc:
+        presenter.show(
+            ActionResult(status=ActionStatus.ERROR, message=exc.message, error_code=exc.code)
+        )
+        return 1
+    if not devices:
+        presenter.status("Giriş aygıtı bulunamadı. Mikrofon bağlı mı?")
+        return 1
+    presenter.status(f"{len(devices)} giriş aygıtı ('*' = varsayılan):")
+    for d in devices:
+        print(d.describe())
+    print("\nSeçmek için: voxflow listen --device <indeks>  (ya da ad parçası)")
+    return 0
+
+
 def run_record(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
     """Gönüllü kayıt oturumu. Ses yalnızca açık izinle ve yerel dizine yazılır."""
     from voice_assistant.services.recording import RecordingSession, load_sentences
@@ -202,9 +232,12 @@ def run_record(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-unt
     def get_capture():  # type: ignore[no-untyped-def]
         nonlocal capture
         if capture is None:
+            from voice_assistant.adapters.audio.devices import resolve_device
             from voice_assistant.adapters.audio.sounddevice_capture import SounddeviceCapture
 
-            capture = SounddeviceCapture(session.sample_rate, 1, 60)
+            capture = SounddeviceCapture(
+                session.sample_rate, 1, 60, device=resolve_device(args.device)
+            )
         return capture
 
     presenter.status(
@@ -380,11 +413,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "chat" or args.command is None:
             return run_chat(container, presenter)
         if args.command == "listen":
-            return run_listen(container, presenter)
+            return run_listen(container, presenter, getattr(args, "device", None))
         if args.command == "info":
             return run_info(container, presenter)
         if args.command == "record":
             return run_record(args, presenter)
+        if args.command == "devices":
+            return run_devices(presenter)
         if args.command == "verify":
             return run_verify(args, presenter)
     except VoxFlowError as exc:  # kullanıcıya traceback değil, anlaşılır hata

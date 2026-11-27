@@ -19,7 +19,13 @@ class SounddeviceCapture:
     MIN_SECONDS = 0.3  # daha kısası "boş kayıt" sayılır (Enter'a hemen basılması)
     CLIP_LEVEL = 0.99  # bu seviyeyi aşan örnek oranı kırpılma uyarısı tetikler
 
-    def __init__(self, sample_rate: int = 16000, channels: int = 1, max_seconds: int = 60) -> None:
+    def __init__(
+        self,
+        sample_rate: int = 16000,
+        channels: int = 1,
+        max_seconds: int = 60,
+        device: int | str | None = None,
+    ) -> None:
         try:
             import numpy as np
             import sounddevice as sd
@@ -32,6 +38,7 @@ class SounddeviceCapture:
         self.sample_rate = sample_rate
         self.channels = channels
         self.max_seconds = max_seconds
+        self.device = device
         self._frames: list[object] = []
         self._stream = None
         self._lock = threading.Lock()
@@ -56,11 +63,17 @@ class SounddeviceCapture:
                 channels=self.channels,
                 dtype="float32",
                 callback=self._callback,
+                device=self.device,
             )
             self._stream.start()
         except Exception as exc:  # noqa: BLE001 - PortAudio hataları çeşitli tiplerde gelir
             self._stream = None
-            raise AudioError(f"Mikrofon açılamadı: {exc}") from exc
+            hint = (
+                " Kullanılabilir aygıtlar için: voxflow devices"
+                if self.device is None
+                else f" Seçilen aygıt: {self.device!r}. Listeleme: voxflow devices"
+            )
+            raise AudioError(f"Mikrofon açılamadı: {exc}.{hint}") from exc
 
     def stop(self) -> PcmClip:
         if self._stream is None:
@@ -87,7 +100,12 @@ class SounddeviceCapture:
             )
         rms = float(self._np.sqrt(self._np.mean(audio**2))) if len(audio) else 0.0
         if rms < 1e-4:
-            raise AudioError("Kayıt sessiz görünüyor (RMS çok düşük). Mikrofon kapalı olabilir.")
+            kaynak = "varsayılan giriş aygıtı" if self.device is None else f"aygıt {self.device!r}"
+            raise AudioError(
+                f"Kayıt sessiz ({kaynak}, RMS {rms:.6f}). Mikrofon kapalı ya da yanlış "
+                "aygıt seçili olabilir. 'voxflow devices' ile listeleyip "
+                "'--device <indeks>' ile seçin."
+            )
         clipped = float(self._np.mean(self._np.abs(audio) >= self.CLIP_LEVEL))
         if clipped > 0.001:
             log.warning(

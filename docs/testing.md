@@ -43,7 +43,7 @@ Henüz ölçülmeyen: ASR WER (konuşmacı-ayrık küme), uçtan uca sesli işle
 | ASR hazır değilken `listen` uyarısı | ✅ Melike, 2026-11-01 (E_ASR_UNAVAILABLE, çökme yok) | – | – |
 | `voxflow --help` | – | ✅ Helin, 2026-11-27 (Win 11; Türkçe karakterler bozulmadan çıktı) | – |
 | `voxflow info` | ✅ Melike, 2026-10-19 | ✅ Helin, 2026-11-27 (Win 11; `platform: windows`, Türkçe çıktı bozulmadı) | – |
-| `voxflow devices` | – | ✘ Helin, 2026-11-27: **komut yok** (`invalid choice`); mevcut komutlar chat, listen, info, record, verify | – |
+| `voxflow devices` | ✅ Melike, 2026-11-27 (23 giriş aygıtı, varsayılan işaretli) | ✘ Helin, 2026-11-27: komut yoktu — #59 ile eklendi, Windows'ta yeniden denenmeli | – |
 | Uygulama açma (gerçek) | – | – | – |
 | Site açma (gerçek tarayıcı) | – | – | – |
 | `record` (veri toplama) | – | ✘ Helin, 2026-11-27: **tamamlanamadı** — varsayılan giriş sanal kablo, sessizlik kaydediliyor (aşağıya bkz.). Kayıt/manifest oluşmadı. Not: issue'daki `--count 1` yok, `--limit 1` ve zorunlu `--speaker`, `--split` gerekir | – |
