@@ -45,6 +45,10 @@ class AudioConfig(BaseModel):
     sample_rate: int = 16000
     channels: int = 1
     max_seconds: int = Field(default=60, ge=1, le=600)
+    # Giriş aygıtı: indeks (int) ya da ad parçası (str). None = işletim sisteminin
+    # varsayılanı. Varsayılan her zaman doğru mikrofon olmayabilir — Windows'ta
+    # sanal ses kablosu varsayılan olduğunda sessizlik kaydediliyordu (#59).
+    device: int | str | None = None
 
 
 class AppConfig(BaseModel):
