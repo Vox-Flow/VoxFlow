@@ -35,48 +35,44 @@ class Clip:
 
 
 def probe_duration(path: Path) -> float:
-    result = subprocess.run(
-        [
-            "ffprobe",
-            "-v",
-            "error",
-            "-show_entries",
-            "format=duration",
-            "-of",
-            "default=noprint_wrappers=1:nokey=1",
-            str(path),
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    """Klibin süresini ffprobe ile okur."""
+    # Komut sabittir ve kabuk kullanılmaz; kullanıcı girdisi yalnızca dosya yolu
+    # olarak geçer. ffprobe PATH üzerinden çözülür, varlığı main() içinde denetlenir.
+    cmd = [  # noqa: S607
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        str(path),
+    ]
+    result = subprocess.run(cmd, check=True, capture_output=True, text=True)  # noqa: S603
     return float(result.stdout.strip())
 
 
 def convert_clip(source: Path, target: Path) -> None:
+    """Klibi protokoldeki biçime çevirir: 16 kHz, tek kanal, 16-bit PCM WAV."""
     target.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        [
-            "ffmpeg",
-            "-nostdin",
-            "-hide_banner",
-            "-loglevel",
-            "error",
-            "-y",
-            "-i",
-            str(source),
-            "-ac",
-            "1",
-            "-ar",
-            "16000",
-            "-c:a",
-            "pcm_s16le",
-            str(target),
-        ],
-        check=True,
-        capture_output=True,
-        text=True,
-    )
+    cmd = [  # noqa: S607
+        "ffmpeg",
+        "-nostdin",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-y",
+        "-i",
+        str(source),
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-c:a",
+        "pcm_s16le",
+        str(target),
+    ]
+    subprocess.run(cmd, check=True, capture_output=True, text=True)  # noqa: S603
 
 
 def read_clips(dataset_dir: Path, metadata: Path, clips_dir: Path) -> dict[str, list[Clip]]:
@@ -129,11 +125,23 @@ def sample_split(
             used_speakers.append(speaker)
     if total_s < target_s:
         print(
-            f"UYARI: {split} hedefi {target_s / 3600:.2f} saat; "
-            f"bulunan {total_s / 3600:.2f} saat.",
+            f"UYARI: {split} hedefi {target_s / 3600:.2f} saat; bulunan {total_s / 3600:.2f} saat.",
             file=sys.stderr,
         )
     return selected, used_speakers, total_s
+
+
+def repo_relative(path: Path) -> str:
+    """Manifest yolunu depo köküne göre göreli yazar.
+
+    Veri hazırlığı ile eğitim farklı makinelerde yapılabildiği için mutlak yol
+    taşınabilir değildir (ör. macOS'ta hazırlanan manifest Windows'ta çalışmaz).
+    Depo kökünün dışındaki yollar olduğu gibi bırakılır.
+    """
+    try:
+        return str(path.resolve().relative_to(Path.cwd().resolve()))
+    except ValueError:
+        return str(path)
 
 
 def write_split(
@@ -146,15 +154,15 @@ def write_split(
     manifest_path = manifest_root / f"asr_{split}_real.jsonl"
     with manifest_path.open("w", encoding="utf-8", newline="\n") as manifest:
         for clip, duration_s in selected:
-            sample_hash = hashlib.sha256(
-                f"{clip.client_id}\0{clip.filename}".encode("utf-8")
-            ).hexdigest()[:16]
+            sample_hash = hashlib.sha256(f"{clip.client_id}\0{clip.filename}".encode()).hexdigest()[
+                :16
+            ]
             sample_id = f"cvtr_{sample_hash}"
             audio_path = audio_root / split / f"{sample_id}.wav"
             convert_clip(clip.source_path, audio_path)
             row = {
                 "sample_id": sample_id,
-                "audio_path": str(audio_path.resolve()),
+                "audio_path": repo_relative(audio_path),
                 "transcript": clip.transcript,
                 "speaker_id": clip.client_id,
                 "language": "tr",
@@ -162,7 +170,9 @@ def write_split(
                 "split": split,
                 "source": "common_voice_tr",
                 "consent_or_license": "CC0-1.0",
-                "quality_flags": [],
+                "quality_flags": [
+                    "ok"
+                ],  # protokol: normal kayıt; sorunlu olanlar süre filtresinde elenir
             }
             manifest.write(json.dumps(row, ensure_ascii=False) + "\n")
 
@@ -188,7 +198,8 @@ def main() -> int:
         parser.error(f"metadata bulunamadı: {metadata_path}")
     clips = read_clips(args.dataset_dir, args.metadata, args.clips_dir)
     speakers = list(clips)
-    rng = random.Random(args.seed)
+    # Kriptografik amaç yok; --seed ile tekrarlanabilir örnekleme isteniyor.
+    rng = random.Random(args.seed)  # noqa: S311
     rng.shuffle(speakers)
     max_speaker_s = args.max_speaker_minutes * 60
     if max_speaker_s <= 0:

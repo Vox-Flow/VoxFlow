@@ -38,12 +38,9 @@ def hardware_summary(device: str) -> str:
             pass
     if device != "cpu":
         try:
-            result = subprocess.run(
-                ["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader"],
-                check=True,
-                capture_output=True,
-                text=True,
-                timeout=5,
+            cmd = ["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader"]  # noqa: S607
+            result = subprocess.run(  # noqa: S603
+                cmd, check=True, capture_output=True, text=True, timeout=5
             )
         except (FileNotFoundError, subprocess.SubprocessError):
             details.append("GPU bilgisi alınamadı")
@@ -116,7 +113,8 @@ def main() -> int:
         "hardware": hardware_summary(args.device),
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
-    report_path = args.report or Path("experiments/reports") / f"asr_baseline_{args.model}.md"
+    default_name = f"{time.strftime('%Y-%m-%d')}_asr_baseline_{args.model}.md"
+    report_path = args.report or Path("experiments/reports") / default_name
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(
         "\n".join(
