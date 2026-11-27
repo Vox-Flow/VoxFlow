@@ -1,0 +1,84 @@
+{
+  "manifest": "datasets/manifests/nlu_test_v2.jsonl",
+  "provider": "rule_based",
+  "model": null,
+  "n": 36,
+  "intent_accuracy": 0.7222,
+  "macro_f1": 0.7204,
+  "slot_exact_match": 0.6944,
+  "llm_called": 0,
+  "valid_llm_response": null,
+  "mean_latency_ms": 0.188,
+  "errors": [
+    {
+      "id": "nlu_v2_001",
+      "utterance": "bu akşam için spor salonu görevi ekle",
+      "slots_gold": {
+        "title": "spor salonu"
+      },
+      "slots_pred": {
+        "title": "bu akşam spor salonu"
+      }
+    },
+    {
+      "id": "nlu_v2_007",
+      "utterance": "şunu not et: oda numarası 312",
+      "gold": "create_note",
+      "pred": "unknown"
+    },
+    {
+      "id": "nlu_v2_009",
+      "utterance": "bir şey not alabilir misin",
+      "gold": "create_note",
+      "pred": "unknown"
+    },
+    {
+      "id": "nlu_v2_012",
+      "utterance": "neler yapmam gerekiyor",
+      "gold": "list_tasks",
+      "pred": "unknown"
+    },
+    {
+      "id": "nlu_v2_013",
+      "utterance": "görev listemi aç",
+      "gold": "list_tasks",
+      "pred": "open_app"
+    },
+    {
+      "id": "nlu_v2_016",
+      "utterance": "komut geçmişini sıfırla",
+      "gold": "clear_history",
+      "pred": "unknown"
+    },
+    {
+      "id": "nlu_v2_017",
+      "utterance": "geçmiş kayıtlarını sil",
+      "gold": "clear_history",
+      "pred": "unknown"
+    },
+    {
+      "id": "nlu_v2_025",
+      "utterance": "gerek yok",
+      "gold": "cancel",
+      "pred": "create_task"
+    },
+    {
+      "id": "nlu_v2_034",
+      "utterance": "alarm kur",
+      "gold": "unsupported",
+      "pred": "unknown"
+    },
+    {
+      "id": "nlu_v2_035",
+      "utterance": "ışıkları kapat",
+      "gold": "unsupported",
+      "pred": "unknown"
+    },
+    {
+      "id": "nlu_v2_036",
+      "utterance": "ekran görüntüsü al",
+      "gold": "unsupported",
+      "pred": "unknown"
+    }
+  ]
+}
