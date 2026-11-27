@@ -12,6 +12,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import platform
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -25,6 +28,29 @@ def normalize_tr(s: str) -> str:
     return normalize(s)
 
 
+def hardware_summary(device: str) -> str:
+    details = [f"{platform.system()} {platform.release()}", platform.machine()]
+    if hasattr(os, "sysconf"):
+        try:
+            memory_gib = os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES") / 2**30
+            details.append(f"RAM {memory_gib:.1f} GiB")
+        except (OSError, ValueError):
+            pass
+    if device != "cpu":
+        try:
+            cmd = ["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader"]  # noqa: S607
+            result = subprocess.run(  # noqa: S603
+                cmd, check=True, capture_output=True, text=True, timeout=5
+            )
+        except (FileNotFoundError, subprocess.SubprocessError):
+            details.append("GPU bilgisi alınamadı")
+        else:
+            gpu = result.stdout.strip().splitlines()
+            if gpu:
+                details.append("GPU " + "; ".join(gpu))
+    return ", ".join(details)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("manifest", type=Path)
@@ -32,6 +58,7 @@ def main() -> int:
     ap.add_argument("--split", default="test")
     ap.add_argument("--device", default="auto")
     ap.add_argument("--compute-type", default="int8")
+    ap.add_argument("--report", type=Path)
     args = ap.parse_args()
 
     try:
@@ -83,8 +110,50 @@ def main() -> int:
         "wer": round(jiwer.wer(refs, hyps), 4),
         "cer": round(jiwer.cer(refs, hyps), 4),
         "mean_latency_s": round(sum(lat) / len(lat), 3),
+        "hardware": hardware_summary(args.device),
     }
     print(json.dumps(report, ensure_ascii=False, indent=2))
+    default_name = f"{time.strftime('%Y-%m-%d')}_asr_baseline_{args.model}.md"
+    report_path = args.report or Path("experiments/reports") / default_name
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(
+        "\n".join(
+            [
+                f"# ASR baseline — Whisper {args.model}",
+                "",
+                "| Alan | Değer |",
+                "|---|---|",
+                f"| Tarih | {time.strftime('%Y-%m-%d')} |",
+                "| Koşan | belirtilmedi |",
+                "| İzlek | ASR |",
+                f"| Model + sürüm | faster-whisper {args.model} ({args.compute_type}) |",
+                f"| Veri manifesti + sürüm | {args.manifest} |",
+                f"| Split | {args.split} (n = {report['n']}) |",
+                f"| Donanım | {report['hardware']} |",
+                "",
+                "## Metrikler",
+                "",
+                "| Metrik | Değer |",
+                "|---|---|",
+                f"| WER | {report['wer']:.4f} |",
+                f"| CER | {report['cer']:.4f} |",
+                f"| Gecikme (ort.) | {report['mean_latency_s']:.3f} s/örnek |",
+                "| Bellek | ölçülmedi |",
+                "",
+                "## Gözlemler",
+                "",
+                "- Hata örneklerini değerlendirme sonrası elle ekleyin.",
+                "- Sınırlılıklar: gecikme ilk model yükleme süresini içermez; bellek ölçülmedi.",
+                "",
+                "## Sonuç ve sonraki adım",
+                "",
+                "Sonuçları ve hata örneklerini gözden geçirin.",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    print(f"Rapor: {report_path}")
     return 0
 
 
