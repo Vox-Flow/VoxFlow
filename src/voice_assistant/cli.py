@@ -5,6 +5,7 @@ Modlar:
   voxflow chat                     etkileşimli metin modu (ses/LLM gerekmez)
   voxflow listen                   Enter ile kaydı başlat/bitir -> ASR -> komut (Faz 2)
   voxflow info                     ortam/adaptör durumu
+  voxflow --ui rich chat           renkli terminal sunumu (rich kuruluysa)
   voxflow record --speaker spk_01 --session s01 --split train --consent team_consent_v1
                                    veri toplama oturumu (araştırma; docs/dataset_protocol.md)
   voxflow verify --manifest ...    kaydedilen transkriptleri dinleyip onayla/düzelt
@@ -18,10 +19,11 @@ import sys
 from pathlib import Path
 
 from voice_assistant import __version__
+from voice_assistant.adapters.ui import UI_CHOICES, build_presenter
 from voice_assistant.domain.errors import AudioError, VoxFlowError
 from voice_assistant.domain.schemas import ActionResult, ActionStatus
 from voice_assistant.logging_setup import setup_logging
-from voice_assistant.services.presenter import ConsolePresenter
+from voice_assistant.ports.protocols import ResponsePresenter
 
 PROMPT = "sen> "
 DEFAULT_SENTENCES = Path("docs/recording_sentences_tr.md")
@@ -34,6 +36,12 @@ def _parser() -> argparse.ArgumentParser:
     p.add_argument("--data-dir", type=Path, default=None, help="not/görev/geçmiş JSON dizini")
     p.add_argument("--no-history", action="store_true", help="geçmişe yazma")
     p.add_argument("--log-level", default=None)
+    p.add_argument(
+        "--ui",
+        choices=UI_CHOICES,
+        default="auto",
+        help="terminal sunumu: auto (tty ise rich) | plain | rich",
+    )
     p.add_argument(
         "--text",
         "-t",
@@ -68,7 +76,7 @@ def _parser() -> argparse.ArgumentParser:
     return p
 
 
-def run_text(container, texts: list[str], presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
+def run_text(container, texts: list[str], presenter: ResponsePresenter) -> int:  # type: ignore[no-untyped-def]
     rc = 0
     for t in texts:
         presenter.status("komut doğrulanıyor")
@@ -79,7 +87,7 @@ def run_text(container, texts: list[str], presenter: ConsolePresenter) -> int:  
     return rc
 
 
-def run_chat(container, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
+def run_chat(container, presenter: ResponsePresenter) -> int:  # type: ignore[no-untyped-def]
     presenter.status("hazır — metin modu. Çıkmak için 'çık' veya Ctrl-D.")
     while True:
         try:
@@ -96,7 +104,7 @@ def run_chat(container, presenter: ConsolePresenter) -> int:  # type: ignore[no-
     return 0
 
 
-def run_listen(container, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
+def run_listen(container, presenter: ResponsePresenter) -> int:  # type: ignore[no-untyped-def]
     """Enter ile başlat / Enter ile bitir. Ham ses yalnızca bellekte tutulur."""
     rec = container.recognizer
     if not rec.is_available():
@@ -171,7 +179,7 @@ def run_listen(container, presenter: ConsolePresenter) -> int:  # type: ignore[n
     return 0
 
 
-def run_record(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
+def run_record(args, presenter: ResponsePresenter) -> int:  # type: ignore[no-untyped-def]
     """Gönüllü kayıt oturumu. Ses yalnızca açık izinle ve yerel dizine yazılır."""
     from voice_assistant.services.recording import RecordingSession, load_sentences
 
@@ -258,7 +266,7 @@ def run_record(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-unt
     return 0
 
 
-def run_verify(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
+def run_verify(args, presenter: ResponsePresenter) -> int:  # type: ignore[no-untyped-def]
     """İnsan kontrolü turu: hedef metin ile gerçekten söylenen karşılaştırılır."""
     from voice_assistant.services.recording import (
         drop_sample,
@@ -327,7 +335,7 @@ def run_verify(args, presenter: ConsolePresenter) -> int:  # type: ignore[no-unt
     return 0
 
 
-def run_info(container, presenter: ConsolePresenter) -> int:  # type: ignore[no-untyped-def]
+def run_info(container, presenter: ResponsePresenter) -> int:  # type: ignore[no-untyped-def]
     c = container
     print(f"voxflow {__version__}")
     print(f"veri dizini : {c.store.data_dir}")
@@ -338,6 +346,7 @@ def run_info(container, presenter: ConsolePresenter) -> int:  # type: ignore[no-
         f"(ses üretir: {c.tts.name != 'console' and c.tts.is_available()})"
     )
     print(f"platform    : {c.launcher.platform}")
+    print(f"arayüz      : {presenter.name}")
     print(f"izinli uygulamalar: {', '.join(sorted(c.launcher.apps)) or '-'}")
     print(f"izinli siteler    : {', '.join(sorted(c.launcher.sites)) or '-'}")
     for w in c.warnings:
@@ -367,7 +376,7 @@ def main(argv: list[str] | None = None) -> int:
     except VoxFlowError as exc:
         print(f"[✖ hata ({exc.code})] {exc.message}", file=sys.stderr)
         return 2
-    presenter = ConsolePresenter(container.tts)
+    presenter = build_presenter(args.ui, container.tts, warnings=container.warnings)
     if args.command not in ("info", "listen"):
         for w in container.warnings:
             if "ASR" in w and not args.command == "listen":

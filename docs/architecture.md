@@ -9,7 +9,7 @@ AudioCapture ─▶ SpeechRecognizer ─▶ IntentInterpreter ─▶ DialogueMan
                                                                  │ ValidatedCommand
                                                                  ▼
                                    ResponsePresenter ◀── ActionDispatcher ──▶ AllowlistLauncher
-                                   (+TTS fallback)        (services)          (adapters/platforms)
+                                   (adapters/ui, +TTS)    (services)          (adapters/platforms)
                                                                  │
                                                                  ▼
                                                            JsonStore (adapters/storage)
@@ -19,8 +19,8 @@ AudioCapture ─▶ SpeechRecognizer ─▶ IntentInterpreter ─▶ DialogueMan
 | Katman | Dosya | Sorumluluk |
 |---|---|---|
 | Domain | `domain/schemas.py`, `domain/dialogue.py`, `domain/errors.py` | Pydantic sözleşmeler: `Intent`, `IntentResult`, `ValidatedCommand`, `ActionResult`, `Task/Note/HistoryEntry`, hata kodları |
-| Ports | `ports/protocols.py` | `AudioCapture`, `SpeechRecognizer`, `IntentInterpreter`, `ActionExecutor`, `SpeechSynthesizer`, `Store` |
-| Adapters | `adapters/*` | Kurallı NLU, (ileride) Ollama/Qwen, mock ASR, faster-whisper, sounddevice, JSON depo, allowlist başlatıcı, console/pyttsx3 TTS |
+| Ports | `ports/protocols.py` | `AudioCapture`, `SpeechRecognizer`, `IntentInterpreter`, `ActionExecutor`, `SpeechSynthesizer`, `ResponsePresenter`, `Store` |
+| Adapters | `adapters/*` | Kurallı NLU, (ileride) Ollama/Qwen, mock ASR, faster-whisper, sounddevice, JSON depo, allowlist başlatıcı, console/pyttsx3 TTS, düz metin/rich sunum (`adapters/ui`) |
 | Services | `services/*` | Tarih çözümleme, doğrulama, diyalog kararı, dispatcher, orkestrasyon, sunum |
 | Wiring | `wiring.py`, `config.py` | Config'e göre adaptör seçimi; eksik bağımlılıkta güvenli geri düşüş |
 

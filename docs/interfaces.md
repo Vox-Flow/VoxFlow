@@ -9,6 +9,7 @@ Tüm adaptörler (gerçek, kurallı, mock) aynı Protocol'ü uygular. Kaynak: `s
 | `IntentInterpreter` | `name`, `interpret(text, state) -> IntentResult` | Çıktı güvenilmez; validator süzer. |
 | `ActionExecutor` | `execute(ValidatedCommand) -> ActionResult` | Yalnızca `ActionDispatcher` tablosu. |
 | `SpeechSynthesizer` | `name`, `is_available()`, `speak(text) -> bool` | `False` = sessiz fallback (açıkça bildirilir). |
+| `ResponsePresenter` | `name`, `status(text)`, `show(ActionResult)` | Terminal sunumu: `plain` (düz metin) / `rich`. `auto` tty değilse `plain` seçer. |
 | `Store` | `add_note`, `add_task`, `list_tasks`, `append_history`, `list_history`, `clear_history` | Not/görev silme-düzenleme **yok**. |
 
 ## IntentResult örneği
