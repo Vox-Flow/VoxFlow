@@ -42,6 +42,7 @@ class Report:
     warnings: list[str] = field(default_factory=list)
     per_split: dict[str, int] = field(default_factory=lambda: defaultdict(int))
     speakers_per_split: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
+    transcripts_per_split: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
     total_duration_s: float = 0.0
 
     @property
@@ -95,6 +96,7 @@ def validate(paths: list[Path], check_files: bool = False) -> Report:
                 rep.errors.append(f"{where}: ses dosyası yok {row['audio_path']}")
             rep.per_split[row["split"]] += 1
             rep.speakers_per_split[row["split"]].add(row["speaker_id"])
+            rep.transcripts_per_split[row["split"]].add(row["transcript"].strip().lower())
             rep.total_duration_s += dur
 
     # Konuşmacı sızıntısı. UNKNOWN_SPEAKER gerçek bir kimlik değil, "kimlik
@@ -106,6 +108,18 @@ def validate(paths: list[Path], check_files: bool = False) -> Report:
             leak = (rep.speakers_per_split[a] & rep.speakers_per_split[b]) - {UNKNOWN_SPEAKER}
             if leak:
                 rep.errors.append(f"konuşmacı sızıntısı {a}∩{b}: {sorted(leak)}")
+    # Cümle sızıntısı. Konuşmacı kimliği olmayan kaynaklarda (FLEURS) tek gerçek
+    # bağımsızlık denetimi budur: aynı cümle hem eğitimde hem testte geçerse model
+    # metni ezberler ve WER sahte düşer.
+    for i, a in enumerate(splits):
+        for b in splits[i + 1 :]:
+            shared = rep.transcripts_per_split[a] & rep.transcripts_per_split[b]
+            if shared:
+                ornek = sorted(shared)[0][:60]
+                rep.errors.append(
+                    f"cümle sızıntısı {a}∩{b}: {len(shared)} ortak cümle (örn. {ornek!r})"
+                )
+
     if any(UNKNOWN_SPEAKER in ids for ids in rep.speakers_per_split.values()):
         rep.warnings.append(
             "speaker_id alanı 'unknown' olan örnekler var: konuşmacı-ayrıklık veriden "
