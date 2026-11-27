@@ -6,9 +6,9 @@ language: tr
 task: transcribe                       # çeviri yok
 
 data:
-  train_manifest: datasets/manifests/asr_train.jsonl   # git dışı (gerçek veri)
-  val_manifest:   datasets/manifests/asr_val.jsonl
-  test_manifest:  datasets/manifests/asr_test.jsonl    # DONDURULMUŞ; konuşmacı-ayrık
+  train_manifest: datasets/manifests/asr_train_real.jsonl   # git dışı (gerçek veri)
+  val_manifest:   datasets/manifests/asr_val_real.jsonl
+  test_manifest:  datasets/manifests/asr_test_real.jsonl   # DONDURULMUŞ; konuşmacı-ayrık
   sample_rate: 16000
   max_duration_s: 15
   min_duration_s: 0.5
