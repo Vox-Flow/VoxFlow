@@ -17,6 +17,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
+UNKNOWN_SPEAKER = "unknown"
+
 REQUIRED = (
     "sample_id",
     "audio_path",
@@ -95,13 +97,20 @@ def validate(paths: list[Path], check_files: bool = False) -> Report:
             rep.speakers_per_split[row["split"]].add(row["speaker_id"])
             rep.total_duration_s += dur
 
-    # Konuşmacı sızıntısı
+    # Konuşmacı sızıntısı. UNKNOWN_SPEAKER gerçek bir kimlik değil, "kimlik
+    # yayımlanmamış" demektir (FLEURS); kesişimde sayılırsa her bölme her bölmeyle
+    # sızıyor görünür. Denetimden çıkarılır ama sessizce geçilmez: uyarı basılır.
     splits = list(rep.speakers_per_split)
     for i, a in enumerate(splits):
         for b in splits[i + 1 :]:
-            leak = rep.speakers_per_split[a] & rep.speakers_per_split[b]
+            leak = (rep.speakers_per_split[a] & rep.speakers_per_split[b]) - {UNKNOWN_SPEAKER}
             if leak:
                 rep.errors.append(f"konuşmacı sızıntısı {a}∩{b}: {sorted(leak)}")
+    if any(UNKNOWN_SPEAKER in ids for ids in rep.speakers_per_split.values()):
+        rep.warnings.append(
+            "speaker_id alanı 'unknown' olan örnekler var: konuşmacı-ayrıklık veriden "
+            "DOĞRULANAMADI, veri kümesinin resmî bölmelerine güveniliyor. Raporda belirtin."
+        )
     return rep
 
 
