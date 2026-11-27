@@ -16,6 +16,16 @@ cp config/sites.example.json config/sites.json  # izinli siteler
 ```
 Veri dizini: `$VOXFLOW_DATA_DIR` ya da Linux `~/.local/share/voxflow`, Windows `%APPDATA%\voxflow`, macOS `~/Library/Application Support/voxflow`.
 
+## Terminal sunumu (isteğe bağlı)
+```bash
+uv sync --extra dev --extra ui          # rich kurar
+.venv/bin/voxflow --ui rich chat        # renkli panel/durum çıktısı
+.venv/bin/voxflow --ui plain chat       # düz metin (varsayılan davranış)
+```
+`--ui auto` (varsayılan): terminalde rich kuruluysa renkli, boruya/dosyaya yazarken düz metin —
+`voxflow ... > kayit.txt` çıktısı kaçış kodu içermez. rich kurulu değilse uygulama çalışmaya
+devam eder, yalnızca düz metne düşer.
+
 ## Ses + ASR (Faz 2, isteğe bağlı)
 ```bash
 uv sync --extra dev --extra audio --extra asr

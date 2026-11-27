@@ -127,3 +127,34 @@ def test_cli_verify_missing_manifest(tmp_path, capsys) -> None:  # type: ignore[
     )
     assert rc == 1
     assert "Manifest yok" in capsys.readouterr().out
+
+
+def test_cli_ui_plain_keeps_text_output(tmp_path, capsys, no_real_launch) -> None:  # type: ignore[no-untyped-def]
+    """--ui plain: çıktı kaçış kodu içermez, mevcut sözleşme korunur."""
+    rc = cli.main(["--data-dir", str(tmp_path), "--ui", "plain", "--text", "görevleri listele"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "\x1b[" not in out
+    assert "[✔ başarılı] Kayıtlı görev yok." in out
+
+
+def test_cli_info_reports_ui_adapter(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
+    rc = cli.main(
+        [
+            "--config",
+            "config/app.example.json",
+            "--data-dir",
+            str(tmp_path),
+            "--ui",
+            "plain",
+            "info",
+        ]
+    )
+    assert rc == 0
+    assert "arayüz      : plain" in capsys.readouterr().out
+
+
+def test_cli_rejects_unknown_ui(tmp_path, capsys) -> None:  # type: ignore[no-untyped-def]
+    with pytest.raises(SystemExit) as exc:
+        cli.main(["--data-dir", str(tmp_path), "--ui", "html", "info"])
+    assert exc.value.code == 2

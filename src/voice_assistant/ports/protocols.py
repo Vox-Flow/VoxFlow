@@ -106,3 +106,23 @@ class Store(Protocol):
     def clear_history(self) -> int:
         """Silinen kayıt sayısını döndürür."""
         ...
+
+
+@runtime_checkable
+class ResponsePresenter(Protocol):
+    """Kullanıcıya dönük sunum katmanı.
+
+    Terminal adaptörleri (düz metin / rich) bu sözleşmeyi uygular; iş mantığı
+    hangi adaptörün bağlı olduğunu bilmez.
+    """
+
+    @property
+    def name(self) -> str: ...
+
+    def status(self, text: str) -> None:
+        """Ara durum satırı (kayıt alınıyor, çözümleniyor...)."""
+        ...
+
+    def show(self, result: ActionResult) -> None:
+        """Sonuçlanmış işlemi göster; varsa TTS ile seslendir."""
+        ...

@@ -6414,6 +6414,7 @@ dev = [
     { name = "httpx" },
     { name = "pre-commit" },
     { name = "pytest" },
+    { name = "rich" },
     { name = "ruff" },
 ]
 ollama = [
@@ -6436,6 +6437,9 @@ tts = [
 typecheck = [
     { name = "mypy" },
 ]
+ui = [
+    { name = "rich" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -6454,6 +6458,8 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8" },
     { name = "pyttsx3", marker = "extra == 'tts'", specifier = ">=2.90" },
     { name = "pyyaml", marker = "extra == 'train'" },
+    { name = "rich", marker = "extra == 'dev'", specifier = ">=13" },
+    { name = "rich", marker = "extra == 'ui'", specifier = ">=13" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
     { name = "sounddevice", marker = "extra == 'audio'", specifier = ">=0.4.6" },
     { name = "soundfile", marker = "extra == 'audio'", specifier = ">=0.12" },
@@ -6461,7 +6467,7 @@ requires-dist = [
     { name = "torch", marker = "extra == 'train'" },
     { name = "transformers", marker = "extra == 'train'", specifier = ">=4.45" },
 ]
-provides-extras = ["audio", "asr", "ollama", "tts", "train", "dev", "typecheck"]
+provides-extras = ["audio", "asr", "ollama", "tts", "ui", "train", "dev", "typecheck"]
 
 [[package]]
 name = "xxhash"
