@@ -63,14 +63,39 @@ class SpyLauncher(AllowlistLauncher):
         return super().open_site(key)
 
 
-def build(apps, sites):  # type: ignore[no-untyped-def]
-    store = InMemoryStore()
-    launcher = SpyLauncher(apps, sites)
-    interp = RuleBasedInterpreter(
+def build_interpreter(provider: str, apps, sites, model: str, ollama_url: str):  # type: ignore[no-untyped-def]
+    """Yorumlayıcıyı seçer. Desen `experiments/nlu/eval_rule_based.py` ile aynıdır.
+
+    Her örnekte yeniden kurulmaması için `build()` dışında tutulur: Ollama
+    istemcisini 36 kez kurmak ölçümü yavaşlatır ve gecikmeyi bozar.
+    """
+    rule_interp = RuleBasedInterpreter(
         {k: v.aliases for k, v in apps.items()},
         {k: v.aliases for k, v in sites.items()},
         today_provider=lambda: REFERENCE_TODAY,
     )
+    if provider == "rule_based":
+        return rule_interp
+
+    from voice_assistant.adapters.nlu.ollama_qwen import HybridInterpreter, OllamaInterpreter
+
+    ollama_interp = OllamaInterpreter(
+        model=model,
+        base_url=ollama_url,
+        timeout_s=30.0,
+        allowed_apps=sorted(apps.keys()),
+        allowed_sites=sorted(sites.keys()),
+        fallback=rule_interp,
+        today_provider=lambda: REFERENCE_TODAY,
+    )
+    if provider == "hybrid":
+        return HybridInterpreter(rule_based=rule_interp, ollama=ollama_interp)
+    return ollama_interp
+
+
+def build(apps, sites, interp):  # type: ignore[no-untyped-def]
+    store = InMemoryStore()
+    launcher = SpyLauncher(apps, sites)
     assistant = Assistant(
         interp,
         DialogueManager(CommandValidator(set(apps), set(sites))),
@@ -170,8 +195,12 @@ def main() -> int:
         "--text-field", default="utterance", help="utterance (referans) | hypothesis (ASR çıktısı)"
     )
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--provider", default="rule_based", choices=["rule_based", "ollama", "hybrid"])
+    ap.add_argument("--model", default="qwen2.5:3b", help="Ollama model adı")
+    ap.add_argument("--ollama-url", default="http://127.0.0.1:11434")
     a = ap.parse_args()
     apps, sites = load_apps(), load_sites()
+    interp = build_interpreter(a.provider, apps, sites, a.model, a.ollama_url)
     rows = [
         json.loads(line)
         for line in a.manifest.read_text(encoding="utf-8").splitlines()
@@ -183,7 +212,7 @@ def main() -> int:
     by_intent: Counter[str] = Counter()
     by_intent_ok: Counter[str] = Counter()
     for r in rows:
-        assistant, store, launcher = build(apps, sites)  # her örnek temiz durumla
+        assistant, store, launcher = build(apps, sites, interp)  # her örnek temiz durumla
         seed_state(assistant, r.get("dialogue_context"))
         text = r.get(a.text_field, "")
         result = assistant.handle_text(text)
@@ -216,6 +245,8 @@ def main() -> int:
     report = {
         "manifest": str(a.manifest),
         "text_field": a.text_field,
+        "provider": a.provider,
+        "model": a.model if a.provider != "rule_based" else None,
         "n": n,
         "intent_accuracy": round(intent_ok / n, 4),
         "action_success_rate": round(action_ok / n, 4),
@@ -227,7 +258,14 @@ def main() -> int:
     if a.json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
     else:
-        for k in ("manifest", "text_field", "n", "intent_accuracy", "action_success_rate"):
+        for k in (
+            "manifest",
+            "text_field",
+            "provider",
+            "n",
+            "intent_accuracy",
+            "action_success_rate",
+        ):
             print(f"{k:22}: {report[k]}")
         for k, v in report["per_intent_action_success"].items():
             print(f"   {k:16} {v}")

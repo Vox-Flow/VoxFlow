@@ -59,11 +59,22 @@ def main() -> int:
     ap.add_argument("--device", default="auto")
     ap.add_argument("--compute-type", default="int8")
     ap.add_argument("--report", type=Path)
+    ap.add_argument(
+        "--initial-prompt",
+        default=None,
+        help="Whisper initial_prompt; CLI'ın gerçek koşulunu yansıtmak için alan ipucu verilir",
+    )
+    ap.add_argument(
+        "--emit-hyp",
+        type=Path,
+        default=None,
+        help="satır başına {sample_id, transcript, hypothesis} yazar; uçtan uca ölçüm bunu tüketir",
+    )
     args = ap.parse_args()
 
     try:
         import jiwer  # type: ignore[import-not-found]
-        import soundfile as sf  # type: ignore[import-not-found]
+        import soundfile  # type: ignore[import-not-found]  # noqa: F401  (load_wav kullanır)
     except ImportError:
         print(
             "jiwer ve soundfile gerekli: uv pip install jiwer soundfile 'voxflow[asr]'",
@@ -72,9 +83,12 @@ def main() -> int:
         return 2
 
     from voice_assistant.adapters.asr.faster_whisper_adapter import FasterWhisperRecognizer
-    from voice_assistant.adapters.audio.clip import PcmClip
+    from voice_assistant.adapters.audio.wav_file import load_wav
+    from voice_assistant.domain.errors import AudioError
 
-    rec = FasterWhisperRecognizer(args.model, args.device, args.compute_type)
+    rec = FasterWhisperRecognizer(
+        args.model, args.device, args.compute_type, initial_prompt=args.initial_prompt
+    )
     if not rec.is_available():
         print("ASR hazır değil (model indirilmemiş olabilir). Bkz. docs/setup.md", file=sys.stderr)
         return 2
@@ -86,21 +100,33 @@ def main() -> int:
     ]
     rows = [r for r in rows if r.get("split") == args.split]
     refs, hyps, lat = [], [], []
+    emitted: list[dict[str, object]] = []
     for r in rows:
         path = Path(r["audio_path"])
         if not path.exists():
             print(f"atlandı (dosya yok): {path}", file=sys.stderr)
             continue
-        audio, sr = sf.read(path, dtype="float32")
-        if sr != 16000:
-            print(f"uyarı: {path} örnekleme {sr} Hz; 16 kHz bekleniyor", file=sys.stderr)
-        if audio.ndim > 1:
-            audio = audio.mean(axis=1)
+        try:
+            clip = load_wav(path)
+        except AudioError as exc:
+            print(f"atlandı ({exc}): {path}", file=sys.stderr)
+            continue
         t0 = time.perf_counter()
-        tr = rec.transcribe(PcmClip(audio, sr))
+        tr = rec.transcribe(clip)
         lat.append(time.perf_counter() - t0)
         refs.append(normalize_tr(r["transcript"]))
         hyps.append(normalize_tr(tr.text))
+        if args.emit_hyp is not None:
+            # Ham metin yazılır; normalizasyonu tüketen taraf kendi yapar.
+            emitted.append(
+                {
+                    "sample_id": r["sample_id"],
+                    "audio_path": r["audio_path"],
+                    "transcript": r["transcript"],
+                    "hypothesis": tr.text,
+                    "duration_s": r.get("duration_s"),
+                }
+            )
     if not refs:
         print("Değerlendirilecek örnek yok.", file=sys.stderr)
         return 1
@@ -112,6 +138,13 @@ def main() -> int:
         "mean_latency_s": round(sum(lat) / len(lat), 3),
         "hardware": hardware_summary(args.device),
     }
+    if args.emit_hyp is not None:
+        args.emit_hyp.parent.mkdir(parents=True, exist_ok=True)
+        with args.emit_hyp.open("w", encoding="utf-8", newline="\n") as fh:
+            for row in emitted:
+                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+        print(f"Hipotezler: {args.emit_hyp} ({len(emitted)} satır)", file=sys.stderr)
+
     print(json.dumps(report, ensure_ascii=False, indent=2))
     default_name = f"{time.strftime('%Y-%m-%d')}_asr_baseline_{args.model}.md"
     report_path = args.report or Path("experiments/reports") / default_name
