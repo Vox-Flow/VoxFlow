@@ -164,7 +164,11 @@ class OllamaInterpreter:
         if not isinstance(params, dict):
             params = {}
 
-        # Tarih parametresi: modelden date_text istenir, Python find_date ile çözülür
+        # Tarih parametresi: modelden yalnızca date_text istenir, Python find_date ile çözülür.
+        # Modelin doğrudan döndürdüğü `date` güvenilmez girdidir (#48): her zaman atılır,
+        # böylece uydurma ISO tarih doğrulamadan geçemez.
+        params = dict(params)
+        params.pop("date", None)
         today: date = self._today()  # type: ignore[operator]
         if "date_text" in params:
             date_raw = params.pop("date_text")
