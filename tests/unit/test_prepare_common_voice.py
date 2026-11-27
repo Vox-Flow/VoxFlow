@@ -85,5 +85,7 @@ def test_repo_relative_path_is_portable(tmp_path: Path, monkeypatch: pytest.Monk
     monkeypatch.chdir(tmp_path)
     inside = tmp_path / "datasets" / "audio" / "x.wav"
     assert P.repo_relative(inside) == str(Path("datasets/audio/x.wav"))
-    outside = Path("/baska/yer/x.wav")
+    # Kök dışındaki dosya göreliye çevrilemez; mutlak yol olduğu gibi kalır.
+    # (tmp_path.parent, cwd'nin dışında olduğu garanti edilen tek yol.)
+    outside = tmp_path.parent / "disarida" / "x.wav"
     assert Path(P.repo_relative(outside)).is_absolute()
