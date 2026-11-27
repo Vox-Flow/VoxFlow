@@ -1,0 +1,9 @@
+{
+  "model": "faster-whisper:base",
+  "n": 743,
+  "wer": 0.2572,
+  "cer": 0.0673,
+  "mean_latency_s": 0.672,
+  "hardware": "Linux 7.1.11-arch1-1, x86_64, RAM 15.4 GiB, GPU NVIDIA GeForce RTX 3050 Ti Laptop GPU, 4096 MiB"
+}
+Rapor: /tmp/claude-1000/-home-melikezaman-Desktop-VoxFlow/61319981-4d06-406a-a6af-a428356d04ad/scratchpad/wer_base.md
