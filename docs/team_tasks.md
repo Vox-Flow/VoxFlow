@@ -12,6 +12,21 @@ Faz 3 (hibrit NLU + ASR hata toleransı + GPU gecikme ölçümü). `v0.1.0` yay�
 **Kritik yol:** veri (İremsu) → eğitim ortamı (Helin) → eğitim koşusu (Helin) →
 uyarlama sonrası ölçüm (İremsu) → uçtan uca değerlendirme + rapor (hepimiz).
 
+### Nereden başlanır
+
+Her üyenin **tek giriş noktası** bir günlük issue'dur; diğer issue'lar oradan sıralı olarak
+açılır. Bekleyen işler `bloke` etiketiyle işaretlidir — üstüne atanmış görünse bile
+başka bir işin bitmesini bekliyor demektir, başlanmaz.
+
+| Üye | Giriş noktası |
+|---|---|
+| Helin | #50 |
+| İremsu | #40 |
+| Melike | #35 |
+
+Aynı iş iki yerde yazılmaz: günlük issue kısa bir sıra listesidir, kabul kriterleri
+işin kendi issue'sunda durur.
+
 ### Bugün açık işler
 
 | Issue | İş | Sahip | Bağımlılık |
