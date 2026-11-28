@@ -99,6 +99,41 @@ def test_date_text_is_resolved_by_python():
     assert "date_text" not in res.parameters
 
 
+def _single_reply(params: dict[str, Any]) -> Any:
+    def handler(request: httpx.Request) -> httpx.Response:
+        content = json.dumps({"intent": "create_task", "parameters": params, "confidence": 1.0})
+        return httpx.Response(200, json={"message": {"role": "assistant", "content": content}})
+
+    return handler
+
+
+def test_model_supplied_date_is_ignored() -> None:
+    """#48: model `date` uydurursa (metinde tarih yok) yok sayılır."""
+    interp, _ = make_ollama(_single_reply({"title": "süt al", "date": "2026-12-25"}))
+    res = interp.interpret("görev ekle süt al", DialogueState())
+    assert "date" not in res.parameters
+    assert res.parameters["title"] == "süt al"
+
+
+def test_model_supplied_date_does_not_override_date_text() -> None:
+    interp, _ = make_ollama(
+        _single_reply({"title": "ödev", "date": "2030-01-01", "date_text": "yarın"})
+    )
+    res = interp.interpret("yarın için ödev ekle", DialogueState())
+    assert res.parameters["date"] == "2026-10-20"
+
+
+def test_fabricated_date_alone_does_not_produce_command() -> None:
+    """#48: 'görev ekle' + uydurma tarih → komut yok, başlık sorulur."""
+    from voice_assistant.services.validator import CommandValidator
+
+    interp, _ = make_ollama(_single_reply({"date": "2026-12-25"}))
+    res = interp.interpret("görev ekle", DialogueState())
+    out = CommandValidator(allowed_apps=set(), allowed_sites=set()).validate(res)
+    assert out.command is None
+    assert out.missing_parameter == "title"
+
+
 def test_invalid_json_calls_fallback():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"message": {"content": "Bu JSON değil! {bozuk"}})

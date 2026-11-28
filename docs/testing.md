@@ -41,12 +41,33 @@ Henüz ölçülmeyen: ASR WER (konuşmacı-ayrık küme), uçtan uca sesli işle
 |---|---|---|---|
 | `--text` / `chat` akışları | ✅ Melike, 2026-10-19 | – | – |
 | ASR hazır değilken `listen` uyarısı | ✅ Melike, 2026-11-01 (E_ASR_UNAVAILABLE, çökme yok) | – | – |
-| `voxflow info` | ✅ Melike, 2026-10-19 | – | – |
+| `voxflow --help` | – | ✅ Helin, 2026-11-27 (Win 11; Türkçe karakterler bozulmadan çıktı) | – |
+| `voxflow info` | ✅ Melike, 2026-10-19 | ✅ Helin, 2026-11-27 (Win 11; `platform: windows`, Türkçe çıktı bozulmadı) | – |
+| `voxflow devices` | – | ✘ Helin, 2026-11-27: **komut yok** (`invalid choice`); mevcut komutlar chat, listen, info, record, verify | – |
 | Uygulama açma (gerçek) | – | – | – |
 | Site açma (gerçek tarayıcı) | – | – | – |
-| `listen` mikrofon kaydı | ✅ Melike, 2026-11-01 (dahili mikrofon, PipeWire; loopback ile sentetik sinyal de doğrulandı) | – | – |
+| `record` (veri toplama) | – | ✘ Helin, 2026-11-27: **tamamlanamadı** — varsayılan giriş sanal kablo, sessizlik kaydediliyor (aşağıya bkz.). Kayıt/manifest oluşmadı. Not: issue'daki `--count 1` yok, `--limit 1` ve zorunlu `--speaker`, `--split` gerekir | – |
+| `listen` mikrofon kaydı | ✅ Melike, 2026-11-01 (dahili mikrofon, PipeWire; loopback ile sentetik sinyal de doğrulandı) | ✘ Helin, 2026-11-27: **doğrulanamadı** — aynı neden (varsayılan giriş sanal kablo). Çalıştırılıp sonucu görülmedi | – |
 | faster-whisper transkripsiyon | ✅ Melike, 2026-11-01 (small+prompt, CPU; rapor: `experiments/reports/2026-11-01_asr_whisper_base_vs_small_smoke.md`) | – | – |
 "–" = henüz denenmedi. CI (GitHub Actions) üç OS'te yalnızca pytest/ruff/CLI duman testini koşar.
+
+### Windows denemesi (2026-11-27, Helin)
+Ortam: Windows 11 Pro, Python 3.12, sounddevice 0.5.6, MME/WASAPI/WDM-KS sürücüleri.
+| Kontrol | Sonuç |
+|---|---|
+| Mikrofon gizlilik izni (kayıt defteri) | ✅ `Allow` |
+| `sounddevice` cihaz listesi | ✅ 29 giriş/çıkış aygıtı listelendi |
+| Realtek mikrofon (MME), 16 kHz mono, 2 sn, bellekte | ✅ rms 0,006–0,008 (oda sesi) |
+| Realtek mikrofon (WASAPI, 16 kHz) | ✘ `PortAudioError: Invalid sample rate [-9997]` |
+| Varsayılan giriş (`Line 1 (Virtual Audio Cable)`) | ✘ **sessizlik**: rms 0,00001, tepe 0,0000 |
+| Microsoft Sound Mapper (Windows varsayılanını izler) | ✘ aynı sessizlik |
+| Türkçe karakterli çıktı (`--help`, `info`) | ✅ `PYTHONUTF8` ayarlanmadan bozulma yok |
+
+**Bulgu 1 — cihaz seçilemiyor:** `SounddeviceCapture` `InputStream`'i cihaz vermeden açar, yani Windows'un varsayılan giriş cihazını kullanır. Bu makinede varsayılan sanal bir ses kablosu olduğu için `record` ve `listen` **sessizlik kaydeder**; hata vermez, kullanıcıya "çalıştı" gibi görünür. Varsayılanı Realtek'e çevirme denemesi (Ayarlar ve `mmsys.cpl`) bu makinede uygulanmadı; neden belirlenemedi (sanal kablo yazılımı varsayılanı geri almış olabilir).
+**Bulgu 2 — sessizlik uyarısı yok:** `listen` yolunda RMS<1e-4 uyarısı Linux'ta birim testle doğrulanmıştı; Windows'ta gerçek akışta görülmedi.
+**Bulgu 3 — komut/dokümantasyon farkı:** `voxflow devices` yok, `record --count` yok. Cihaz listesi için şimdilik `python -c "import sounddevice as sd; print(sd.query_devices())"`.
+**Bulgu 4 — WASAPI:** 16 kHz paylaşımlı kipte reddediliyor; uygulama WASAPI seçerse yeniden örnekleme gerekir (şu an MME varsayılan).
+Önerilen ayrı issue'lar (düzeltilmedi): (a) `--device` seçeneği ve cihaz listesi komutu, (b) sessiz kayıt tespiti ve uyarısı, (c) WASAPI örnekleme hızı.
 
 ### CI'nın yakaladığı platform hatası (2026-10-19)
 Windows runner'da `UnicodeEncodeError: 'charmap' codec can't encode character 'ğ'`: Windows konsolu cp1252 kullanıyor. Çözüm: `cli.main` başında stdout/stderr UTF-8'e `reconfigure` edilir; CI'da `PYTHONUTF8=1`. Linux/macOS etkilenmedi.
