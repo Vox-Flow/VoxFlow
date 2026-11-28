@@ -55,3 +55,72 @@ def test_duplicate_id_and_bad_split(tmp_path: Path) -> None:
 def test_check_files_reports_missing_audio(tmp_path: Path) -> None:
     rep = validate([_write(tmp_path, [ROW])], check_files=True)
     assert any("ses dosyası yok" in e for e in rep.errors)
+
+
+def test_sentence_leak_is_error_when_speakers_unknown(tmp_path: Path) -> None:
+    """FLEURS gibi kimliksiz kaynakta bağımsızlığın tek kanıtı cümle ayrıklığı."""
+    rows = [
+        {**ROW, "sample_id": "a1", "speaker_id": "unknown", "split": "train"},
+        {**ROW, "sample_id": "a2", "speaker_id": "unknown", "split": "test"},
+    ]
+    rep = validate([_write(tmp_path, rows)])
+    assert not rep.ok
+    assert any("cümle sızıntısı" in e for e in rep.errors)
+
+
+def test_sentence_leak_is_warning_when_speakers_are_disjoint(tmp_path: Path) -> None:
+    """Kendi kayıtlarımızda aynı cümleyi farklı kişiye okutmak kasıtlı (#17 protokolü)."""
+    rows = [
+        {**ROW, "sample_id": "a1", "speaker_id": "spk_01", "split": "train"},
+        {**ROW, "sample_id": "a2", "speaker_id": "spk_02", "split": "test"},
+    ]
+    rep = validate([_write(tmp_path, rows)])
+    assert rep.ok, rep.errors
+    assert any("cümle sızıntısı" in w for w in rep.warnings)
+
+
+def test_sentence_leak_is_case_and_space_insensitive(tmp_path: Path) -> None:
+    rows = [
+        {**ROW, "sample_id": "a1", "speaker_id": "unknown", "split": "train"},
+        {
+            **ROW,
+            "sample_id": "a2",
+            "speaker_id": "unknown",
+            "split": "test",
+            "transcript": "  Görevleri Listele  ",
+        },
+    ]
+    rep = validate([_write(tmp_path, rows)])
+    assert any("cümle sızıntısı" in e for e in rep.errors)
+
+
+def test_distinct_sentences_do_not_trigger_leak(tmp_path: Path) -> None:
+    rows = [
+        {**ROW, "sample_id": "a1", "speaker_id": "spk_01", "split": "train"},
+        {
+            **ROW,
+            "sample_id": "a2",
+            "speaker_id": "spk_02",
+            "split": "test",
+            "transcript": "geçmişi göster",
+        },
+    ]
+    rep = validate([_write(tmp_path, rows)])
+    assert rep.ok, rep.errors
+
+
+def test_unknown_speaker_warns_instead_of_failing(tmp_path: Path) -> None:
+    """FLEURS kimlik vermiyor: sızıntı denetimi atlanır ama sessizce değil."""
+    rows = [
+        {**ROW, "sample_id": "a1", "speaker_id": "unknown", "split": "train"},
+        {
+            **ROW,
+            "sample_id": "a2",
+            "speaker_id": "unknown",
+            "split": "test",
+            "transcript": "geçmişi göster",
+        },
+    ]
+    rep = validate([_write(tmp_path, rows)])
+    assert rep.ok, rep.errors
+    assert any("DOĞRULANAMADI" in w for w in rep.warnings)

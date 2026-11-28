@@ -17,6 +17,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
+UNKNOWN_SPEAKER = "unknown"
+
 REQUIRED = (
     "sample_id",
     "audio_path",
@@ -40,6 +42,7 @@ class Report:
     warnings: list[str] = field(default_factory=list)
     per_split: dict[str, int] = field(default_factory=lambda: defaultdict(int))
     speakers_per_split: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
+    transcripts_per_split: dict[str, set[str]] = field(default_factory=lambda: defaultdict(set))
     total_duration_s: float = 0.0
 
     @property
@@ -93,15 +96,49 @@ def validate(paths: list[Path], check_files: bool = False) -> Report:
                 rep.errors.append(f"{where}: ses dosyası yok {row['audio_path']}")
             rep.per_split[row["split"]] += 1
             rep.speakers_per_split[row["split"]].add(row["speaker_id"])
+            rep.transcripts_per_split[row["split"]].add(row["transcript"].strip().lower())
             rep.total_duration_s += dur
 
-    # Konuşmacı sızıntısı
+    # Konuşmacı sızıntısı. UNKNOWN_SPEAKER gerçek bir kimlik değil, "kimlik
+    # yayımlanmamış" demektir (FLEURS); kesişimde sayılırsa her bölme her bölmeyle
+    # sızıyor görünür. Denetimden çıkarılır ama sessizce geçilmez: uyarı basılır.
     splits = list(rep.speakers_per_split)
     for i, a in enumerate(splits):
         for b in splits[i + 1 :]:
-            leak = rep.speakers_per_split[a] & rep.speakers_per_split[b]
+            leak = (rep.speakers_per_split[a] & rep.speakers_per_split[b]) - {UNKNOWN_SPEAKER}
             if leak:
                 rep.errors.append(f"konuşmacı sızıntısı {a}∩{b}: {sorted(leak)}")
+    # Cümle sızıntısı. Ne kadar ciddi olduğu konuşmacı kimliğinin bilinip
+    # bilinmemesine bağlı:
+    #   - Konuşmacı biliniyor ve ayrık ise (kendi kayıtlarımız): aynı cümleyi
+    #     farklı kişilere okutmak **kasıtlıdır**, konuşmacıya genellemeyi ölçer
+    #     (docs/recording_sentences_tr.md). Uyarı yeter.
+    #   - Konuşmacı bilinmiyorsa (FLEURS): bölmelerin bağımsızlığını gösteren
+    #     başka hiçbir kanıt yok. Aynı cümle iki bölmedeyse model metni ezberler
+    #     ve WER sahte düşer — bu bir hatadır.
+    speakers_unknown = any(
+        ids and ids <= {UNKNOWN_SPEAKER} for ids in rep.speakers_per_split.values()
+    )
+    for i, a in enumerate(splits):
+        for b in splits[i + 1 :]:
+            shared = rep.transcripts_per_split[a] & rep.transcripts_per_split[b]
+            if not shared:
+                continue
+            ornek = sorted(shared)[0][:60]
+            mesaj = f"cümle sızıntısı {a}∩{b}: {len(shared)} ortak cümle (örn. {ornek!r})"
+            if speakers_unknown:
+                rep.errors.append(mesaj)
+            else:
+                rep.warnings.append(
+                    mesaj + " — konuşmacılar ayrık olduğu için kasıtlı sayıldı; "
+                    "sonuç 'görülmemiş cümleye genelleme' olarak sunulmamalı"
+                )
+
+    if any(UNKNOWN_SPEAKER in ids for ids in rep.speakers_per_split.values()):
+        rep.warnings.append(
+            "speaker_id alanı 'unknown' olan örnekler var: konuşmacı-ayrıklık veriden "
+            "DOĞRULANAMADI, veri kümesinin resmî bölmelerine güveniliyor. Raporda belirtin."
+        )
     return rep
 
 

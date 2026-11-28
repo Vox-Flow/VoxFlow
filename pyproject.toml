@@ -23,7 +23,9 @@ audio = ["sounddevice>=0.4.6", "numpy>=1.26", "soundfile>=0.12"]
 asr = ["faster-whisper>=1.0"]
 ollama = ["httpx>=0.27"]
 tts = ["pyttsx3>=2.90"]
-train = ["torch", "transformers>=4.45", "datasets[audio]", "peft", "jiwer", "evaluate", "accelerate", "pyyaml", "soundfile"]
+# transformers 5.x Seq2SeqTrainer API'sini değiştirdi; train_whisper.py v4 API'siyle
+# yazıldı (processing_class, eval_strategy). Tavan kaldırılmadan önce betik uyarlanmalı.
+train = ["torch", "transformers>=4.45,<5", "datasets[audio]", "peft", "jiwer", "evaluate", "accelerate", "pyyaml", "soundfile"]
 dev = ["pytest>=8", "ruff>=0.5", "pre-commit>=3.7", "httpx>=0.27"]
 typecheck = ["mypy>=1.10"]
 

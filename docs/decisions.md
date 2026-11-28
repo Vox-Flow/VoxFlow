@@ -90,3 +90,29 @@ Her karar: bağlam, alternatifler, karar, etkiler, geri dönüş planı. Tarihle
   kapsamında kullanımı uygundur; kısıtsız kullanım gerekirse Apache 2.0 lisanslı 1.5B
   veya 7B sürümüne geçilmelidir. Gemma ve Llama yalnızca karşılaştırma amacıyla
   çalıştırılmış, hiçbiri dağıtılmamıştır. Depo kodu MIT lisanslıdır (`LICENSE`).
+
+## ADR-011 — Uyarlama verisi FLEURS Türkçe'ye geçti (2026-11-27)
+- **Karar:** ADR-010'daki birincil kaynak **Common Voice Türkçe**'den, orada yedek olarak
+  yazılan **FLEURS Türkçe** (CC-BY-4.0) kaynağına geçilmiştir. Hazırlama betiği
+  `experiments/asr/prepare_fleurs.py`; Common Voice betiği (`prepare_common_voice.py`)
+  silinmedi, erişim geri gelirse kullanılabilir.
+- **Gerekçe:** Common Voice Ekim 2025'te Hugging Face'ten kaldırılmış, Mozilla Data
+  Collective'e taşınmıştır (`mozilla-foundation/common_voice_17_0` deposunda yalnızca
+  README kalmış, "exclusively available through Mozilla Data Collective" diyor).
+  İndirme artık hesap ve manuel onay gerektiriyor; ekipte arşivi olan yok. FLEURS
+  `google/fleurs` deposundan doğrudan indirilebiliyor (test 464 MB, dev 199 MB,
+  train 1,47 GB) ve ADR-010 bunu zaten yedek olarak adlandırmıştı.
+- **Teknik farklar:**
+  - FLEURS 16 kHz tek kanal ama **32 bit float** WAV dağıtır; protokol PCM-16 istediği
+    için örnekler `soundfile` ile yeniden yazılır. **ffmpeg gerekmez** — bu makinede
+    ffmpeg kırık olduğu için pratik bir kazanç.
+  - FLEURS **konuşmacı kimliği yayımlamaz.** Manifestte `speaker_id` alanına `unknown`
+    yazılır ve `quality_flags` içine `no_speaker_id` konur; uydurma kimlik üretilmez.
+- **Dürüstlük notu (rapora yazılacak):** Konuşmacı-ayrıklık bu kaynakta **veriden
+  doğrulanamaz**; veri kümesinin resmî train/dev/test bölmelerine güvenilmektedir.
+  `validate_manifest.py` bu durumda sızıntı denetimini atlar ve uyarı basar — sessizce
+  geçmez. Common Voice'ta bu denetim gerçekten çalışıyordu; bu bir gerilemedir ve
+  raporda belirtilmelidir.
+- **Etkiler:** Alan uyuşmazlığı büyüdü. FLEURS haber/ansiklopedi cümleleridir (ortalama
+  12,6 saniye); bizim alanımız 1–3 saniyelik kısa komutlardır. Uyarlama "Türkçe konuşma"
+  yönünde iyileştirir, "komut alanı" yönünde değil. Bu sınırlılık rapora yazılacaktır.
