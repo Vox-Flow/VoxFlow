@@ -4,37 +4,56 @@ Roller: **H** Helin (entegrasyon lideri), **İ** İremsu (ses/ASR), **M** Melike
 
 Haftalık rapor ve sunum iskeletleri: `docs/weekly/`.
 
-## Güncel durum (26 Kasım 2026) — kanban: https://github.com/orgs/Vox-Flow/projects/3
+## Güncel durum (27 Kasım 2026) — kanban: https://github.com/orgs/Vox-Flow/projects/3
 
 **Bitti:** Faz 1 (metin modu), Faz 2 altyapısı (mikrofon, Whisper, kayıt aracı),
-Faz 3 (hibrit NLU). `v0.1.0` yayımlandı. Açık PR yok.
+Faz 3 (hibrit NLU + ASR hata toleransı + GPU gecikme ölçümü). `v0.1.0` yayımlandı.
 
-**Aktif işler**
+**Kritik yol:** veri (İremsu) → eğitim ortamı (Helin) → eğitim koşusu (Helin) →
+uyarlama sonrası ölçüm (İremsu) → uçtan uca değerlendirme + rapor (hepimiz).
 
-| Issue | İş | Sahip |
-|---|---|---|
-| #40 | Günlük: ortam kurulumu → Common Voice indirme → WER tabanı | İremsu |
-| #4 | WER/CER taban ölçümü (Common Voice TR test) | İremsu |
-| #8 | **Ana izlek:** Whisper uyarlaması | İremsu |
-| #36 | Günlük: GPU kurulumu ve gecikmenin yeniden ölçülmesi | Helin |
-| #12 | Windows/macOS platform doğrulaması | Helin |
-| #35 | Bağımsız yeni NLU test kümesi (nlu_test_v2) | Melike |
+### Nereden başlanır
 
-**Bitirme adımları (sırada)**
+Her üyenin **tek giriş noktası** bir günlük issue'dur; diğer issue'lar oradan sıralı olarak
+açılır. Bekleyen işler `bloke` etiketiyle işaretlidir — üstüne atanmış görünse bile
+başka bir işin bitmesini bekliyor demektir, başlanmaz.
 
-| Issue | İş | Sahip |
-|---|---|---|
-| #41 | Uçtan uca sesli değerlendirme (ASR çıktısıyla) | Melike |
-| #42 | Rapor: giriş, gereksinimler, veri, NLU sonuçları, sonuç, ekler | Melike |
-| #43 | Rapor: ilgili çalışmalar (NLU), mimari, hibrit, tartışma | Helin |
-| #44 | Rapor: ilgili çalışmalar (ASR), veri toplama, ASR ve uyarlama sonuçları | İremsu |
-| #45 | v1.0 sürüm teslimi ve etiket | Melike |
+| Üye | Giriş noktası |
+|---|---|
+| Helin | #50 |
+| İremsu | #40 |
+| Melike | #35 |
+
+Aynı iş iki yerde yazılmaz: günlük issue kısa bir sıra listesidir, kabul kriterleri
+işin kendi issue'sunda durur.
+
+### Bugün açık işler
+
+| Issue | İş | Sahip | Bağımlılık |
+|---|---|---|---|
+| #49 (PR) | Common Voice hazırlama hattı — gerçek veriyle koşu | İremsu | — |
+| #40 | Günlük: ortam → Common Voice → WER tabanı | İremsu | — |
+| #50 | Günlük: #48 düzeltmesi, eğitim ortamı, Windows doğrulaması | Helin | — |
+| #35 | Bağımsız NLU test kümesi (nlu_test_v2) | Melike | — |
+
+### Sıradaki işler
+
+| Issue | İş | Sahip | Bağımlılık |
+|---|---|---|---|
+| #48 | Uydurma tarih doğrulamadan geçiyor (güvenlik) | Helin | — |
+| #12 | Windows/macOS platform doğrulaması | Helin | — |
+| #4 | WER/CER tabanı (uyarlama öncesi) | İremsu | #49 |
+| #8 | **Ana izlek:** Whisper uyarlaması (6 adım, iki sahipli) | İremsu + Helin | #4 |
+| #41 | Uçtan uca sesli değerlendirme | Melike | #8 |
+| #42 #43 #44 | Rapor bölümleri | Melike / Helin / İremsu | #41 |
+| #45 | v1.0 sürüm teslimi ve etiket | Melike | #42–#44 |
 
 **İkinci aşama (ana teslimin parçası değil):** #3 gönüllü ses kaydı, #17 izin formundaki
 iki ekip kararı. ADR-010 sonrası bunlar uyarlamayı bloke etmiyor.
 
-**Bağımlılık zinciri:** #40 → #4 → #8 → (#41, #44) → #45. Kritik yol İremsu'nun ortam
-kurulumundan geçiyor.
+**Neden #8 iki sahipli:** veri macOS'ta hazırlanıyor, eğitim Windows + RTX 4050'de koşacak.
+Sınır #8'de tablo hâlinde yazılı. Bu yüzden manifestlerdeki `audio_path` depo köküne göre
+göreli yazılır — mutlak yol makineler arasında taşınmaz.
 
 ## Faz 1 — tamamlanan iskelet
 | # | İş | Sorumlu | Durum |
