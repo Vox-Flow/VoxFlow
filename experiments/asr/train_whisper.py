@@ -106,7 +106,7 @@ def train(cfg: dict, cfg_path: Path, output: Path) -> int:  # type: ignore[type-
     model.generation_config.task = "transcribe"
     model.generation_config.forced_decoder_ids = None
     if t.get("gradient_checkpointing"):
-        model.gradient_checkpointing_enable()
+        model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
         model.config.use_cache = False
     if t.get("freeze_encoder"):
         model.freeze_encoder()
